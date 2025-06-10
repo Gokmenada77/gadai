@@ -1,0 +1,3891 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<title>Gadai POS - Online Firebase</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<style>
+    body { font-family: Arial, sans-serif; background: #f3f6fa; margin:0; }
+    #mainPanel, #loginBox {
+      max-width: 1100px; margin: 48px auto;
+      background: #fff; padding: 28px 22px 22px 22px;
+      border-radius: 15px; box-shadow: 0 4px 22px #ccd;
+      position: relative;
+    }
+    h2 { text-align: center; color: #e91e63; letter-spacing: 1px; }
+    .input-row { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 4px; color:#3949ab;}
+    input[type=text], input[type=password], input[type=number], select {
+      width: 100%; padding: 10px; font-size: 17px; border: 1px solid #c3c3c3;
+      border-radius: 6px; box-sizing: border-box; background:#f8f9fc;
+      transition: border .2s;
+    }
+    input:focus, select:focus { border:1.5px solid #e91e63; outline: none;}
+    button {
+      background: linear-gradient(90deg,#e91e63 40%, #1976d2 100%);
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 10px 28px;
+      font-weight:600;
+      transition: background .23s;
+      margin-top:8px;
+    }
+    button:hover { filter: brightness(.98); box-shadow:0 2px 11px #e91e631a; }
+    .menu-toggle {
+        position: fixed;
+        left: 15px;
+        top: 20px;
+        width: 50px;
+        height: 50px;
+        background: #23272f;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .sidebar {
+        position: fixed;
+        left: -250px;
+        top: 0;
+        width: 250px;
+        height: 100%;
+        background: #23272f;
+        transition: 0.3s;
+        z-index: 999;
+        padding-top: 60px;
+    }
+    .sidebar.active {
+        left: 0;
+    }
+    .sidebar-link {
+        display: block;
+        padding: 15px 25px;
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        border-bottom: 1px solid #363952;
+    }
+    .sidebar-link:hover,
+    .sidebar-link.active {
+        background: #e91e63;
+    }
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    #mainContent {
+        display: none;
+        gap: 26px;
+        margin-top: 18px;
+        margin-bottom: 8px;
+    }
+    #mainContent.active {
+        display: flex;
+        flex-direction: row;
+    }
+    #cartBox {
+        width: 320px;
+        min-width: 250px;
+        max-width: 350px;
+        background: #fafbfc;
+        border-radius: 17px;
+        padding: 22px 18px 18px 22px;
+        box-shadow: 0 2px 13px #e91e632c;
+        border: 1.2px solid #ffd1e6;
+        display: none;
+        flex-direction: column;
+        position: relative;
+    }
+    #cartOrderNo {
+      font-weight: bold; font-size: 21px; color: #e91e63;
+      background: #fde4f0; padding: 8px 0 7px 0; border-radius: 10px;
+      margin-bottom: 11px; text-align: center; letter-spacing: 1px;
+    }
+    #cartBox > b { font-size: 22px; color: #222c;}
+    #cartList { list-style: none; padding: 0; margin: 8px 0 12px 0; }
+    #cartList li { margin-bottom: 8px; font-size:16px; }
+    #cart-total { font-weight: bold; font-size:19px; color:#e91e63; }
+    #paymentTypes { display: flex; gap: 10px; margin: 13px 0 0 0; }
+    .payBtn {
+      flex: 1;
+      background: #f8f9fc; color: #2c2c2c;
+      border: 2px solid #bbb; font-size: 17px; border-radius: 8px;
+      padding: 10px 0; font-weight: bold; cursor: pointer; transition: all 0.2s; margin-bottom:2px;
+    }
+    .payBtn.selected {
+      background: #e91e63; color: #fff; border: 2px solid #e91e63;
+      box-shadow:0 2px 8px #e91e6344;
+    }
+    #completeSale {
+      background: linear-gradient(90deg,#1976d2 0%, #e91e63 95%);
+      width: 100%; margin: 13px 0 0 0; font-size:18px;
+    }
+    #saleMsg { color:green; margin-top:8px; display:none; }
+    #rightPanel {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      padding: 14px 6px 10px 10px;
+      position: relative;
+      min-width: 220px;
+    }
+    .category-bar {
+      display: none;
+      gap: 14px;
+      margin-bottom: 22px;
+      justify-content: flex-end;
+      width: 100%;
+      position: relative;
+    }
+    .cat-btn {
+      background: #fde4f0; color: #e91e63;
+      border: 1.8px solid #e91e63; padding: 12px 29px; font-size: 18px;
+      border-radius: 20px; cursor:pointer; font-weight:600; box-shadow:0 2px 8px #e91e6322; transition:background .18s;
+    }
+    .cat-btn.active, .cat-btn:hover {
+      background: #e91e63; color: #fff; box-shadow:0 2px 11px #e91e632a;
+    }
+    #products {
+      display: none;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .product {
+      background: #fff; border: 1.3px solid #e4e9f0; border-radius: 12px;
+      padding: 18px 10px 15px 10px; min-width: 160px; max-width: 190px;
+      text-align: center; box-sizing: border-box; flex: 1 1 155px;
+      box-shadow: 0 2px 8px #e91e6317; transition:box-shadow .18s; position:relative; margin-bottom:9px;
+    }
+    .product:hover { box-shadow:0 6px 25px #e91e632a; }
+    .product > div { font-size:17px;}
+    .product button {
+      background: linear-gradient(90deg,#1976d2 0%, #e91e63 100%);
+      width: 100%; margin-top:7px; font-size:17px; padding:7px 0; border-radius:7px;
+    }
+    .del-btn {
+      position: absolute; top: 9px; right: 10px;
+      background: none; border:none; color:#e91e63; font-size: 22px;
+      cursor:pointer; opacity:.7; transition:.2s;
+    }
+    .del-btn:hover { opacity:1; color: #b3001e;}
+    .order-card {
+      position:relative; padding-top:12px; background:#f8f9fa; border-radius:12px; margin:9px 0;
+      box-shadow:0 1px 6px #e91e6317; padding:15px 11px 13px 18px; transition:.18s; min-width:220px; max-width:340px;
+    }
+    .order-card:hover { box-shadow:0 3px 18px #e91e632a; background:#fff;}
+    .order-title { font-size:19px; font-weight:600; color:#e91e63; }
+    .order-total { font-size:15px; color:#3949ab;}
+    .order-time { font-size:13px; color:#555;}
+    #reportPanel, #productAdminPanel { margin:0; margin-top:18px;}
+    #productAdminPanel table { border-collapse:collapse; width:100%; background:#fcfcfc; margin-top:18px;}
+    #productAdminPanel th, #productAdminPanel td { border:1px solid #e3e3e3; padding:7px 8px; font-size:15px;}
+    #productAdminPanel th { background:#fde4f0; color:#e91e63; font-weight:700;}
+    #productAdminPanel input[type=text], #productAdminPanel input[type=number], #productAdminPanel select { font-size:15px; padding:7px;}
+    .adminActionBtn { background:#e91e63; padding:6px 14px; font-size:14px; border-radius:6px;}
+    @media (max-width:950px) { #mainContent.active { flex-direction: column; gap: 10px; } #cartBox { max-width: 100%; min-width: unset; margin-bottom: 12px; } #rightPanel { padding: 10px 2px; } }
+    @media (max-width: 680px) { #mainPanel, #loginBox { padding:6px 2px;} .order-card { padding:10px 3px;} }
+    /* Yeni Sipariş Butonu */
+    .new-order-btn {
+        position: fixed;
+        left: 75px;
+        top: 20px;
+        width: 50px;
+        height: 50px;
+        background: #e91e63;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 32px;
+        cursor: pointer;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .new-order-btn:hover {
+        background: #d81557;
+        transform: scale(1.05);
+        transition: all 0.2s;
+    }
+
+    /* Ürün grupları varsayılan olarak gizli */
+    .category-bar { 
+        display: none; 
+    }
+    #products { 
+        display: none; 
+    }
+
+    /* Aktif siparişler için stil tanımlamaları */
+    .order-header-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .filter-controls select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      min-width: 150px;
+    }
+
+    .order-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .order-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .order-id {
+      font-size: 18px;
+      font-weight: bold;
+      color: #e91e63;
+    }
+
+    .order-time {
+      color: #666;
+    }
+
+    .order-items {
+      margin-bottom: 15px;
+    }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .item-name {
+      flex: 1;
+    }
+
+    .item-qty {
+      margin: 0 15px;
+      color: #1976d2;
+    }
+
+    .item-price {
+      font-weight: 500;
+    }
+
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .order-user {
+      color: #666;
+    }
+
+    .order-total {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1976d2;
+    }
+
+    .order-payment {
+      padding: 5px 10px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .order-notes {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .note-item {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .note-item small {
+      color: #666;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .note-item p {
+      margin: 0;
+      color: #333;
+    }
+
+    /* Tamamlanan siparişler için stil tanımlamaları */
+    .completed-order-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .completed-order-table th {
+      background: #e91e63;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    .completed-order-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .completed-order-table tr:hover {
+      background: #fafafa;
+    }
+
+    .order-actions button {
+      padding: 6px 12px;
+      margin: 0 4px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    .order-status {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .status-completed {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-cancelled {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    /* Tamamlanan sipariş detay modalı için stil tanımlamaları */
+    .edit-order-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        z-index: 1001;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+
+    .edit-order-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .edit-order-section h4 {
+        margin: 0 0 15px 0;
+        color: #1976d2;
+    }
+
+    .edit-order-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+
+    .edit-order-table th {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 12px;
+        text-align: left;
+    }
+
+    .edit-order-table td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .edit-order-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .edit-order-actions button {
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+</style>
+
+<!-- FIREBASE CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+function newOrder() {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD formatı
+
+    const metaDoc = db.collection("meta").doc("seqCounter");
+
+    metaDoc.get().then(docSnap => {
+        let seq = 1;
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            if (data.date === todayStr) {
+                seq = data.value + 1;
+            }
+        }
+
+        // Yeni siparişi kaydet
+        let doc = db.collection("orders").doc();
+        doc.set({
+            id: doc.id,
+            seq: seq,
+            status: 'open',
+            cart: [],
+            payment: '',
+            created: firebase.firestore.Timestamp.fromDate(now),
+            user: currentUser.username
+        });
+
+        // Sayaç güncelle
+        metaDoc.set({ date: todayStr, value: seq });
+
+        // Arayüzü güncelle
+        currentOrderId = doc.id;
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('mainContent').classList.add('active');
+        document.getElementById('mainPanel').classList.add('order-mode');
+        document.getElementById('cartBox').style.display = 'flex';
+        document.querySelector('.category-bar').style.display = 'flex';
+        document.getElementById('products').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'flex';
+
+        renderCategorySelects();
+        showCategory(categories[0]);
+    }).catch(error => handleError(error, 'Yeni sipariş oluşturulurken bir hata oluştu'));
+}
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showPanel = showPanel;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
+function newOrder() {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD formatı
+
+    const metaDoc = db.collection("meta").doc("seqCounter");
+
+    metaDoc.get().then(docSnap => {
+        let seq = 1;
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            if (data.date === todayStr) {
+                seq = data.value + 1;
+            }
+        }
+
+        // Yeni siparişi kaydet
+        let doc = db.collection("orders").doc();
+        doc.set({
+            id: doc.id,
+            seq: seq,
+            status: 'open',
+            cart: [],
+            payment: '',
+            created: firebase.firestore.Timestamp.fromDate(now),
+            user: currentUser.username
+        });
+
+        // Sayaç güncelle
+        metaDoc.set({ date: todayStr, value: seq });
+
+        // Arayüzü güncelle
+        currentOrderId = doc.id;
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('mainContent').classList.add('active');
+        document.getElementById('mainPanel').classList.add('order-mode');
+        document.getElementById('cartBox').style.display = 'flex';
+        document.querySelector('.category-bar').style.display = 'flex';
+        document.getElementById('products').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'flex';
+
+        renderCategorySelects();
+        showCategory(categories[0]);
+    }).catch(error => handleError(error, 'Yeni sipariş oluşturulurken bir hata oluştu'));
+}
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showPanel = showPanel;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js">
+function newOrder() {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD formatı
+
+    const metaDoc = db.collection("meta").doc("seqCounter");
+
+    metaDoc.get().then(docSnap => {
+        let seq = 1;
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            if (data.date === todayStr) {
+                seq = data.value + 1;
+            }
+        }
+
+        // Yeni siparişi kaydet
+        let doc = db.collection("orders").doc();
+        doc.set({
+            id: doc.id,
+            seq: seq,
+            status: 'open',
+            cart: [],
+            payment: '',
+            created: firebase.firestore.Timestamp.fromDate(now),
+            user: currentUser.username
+        });
+
+        // Sayaç güncelle
+        metaDoc.set({ date: todayStr, value: seq });
+
+        // Arayüzü güncelle
+        currentOrderId = doc.id;
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('mainContent').classList.add('active');
+        document.getElementById('mainPanel').classList.add('order-mode');
+        document.getElementById('cartBox').style.display = 'flex';
+        document.querySelector('.category-bar').style.display = 'flex';
+        document.getElementById('products').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'flex';
+
+        renderCategorySelects();
+        showCategory(categories[0]);
+    }).catch(error => handleError(error, 'Yeni sipariş oluşturulurken bir hata oluştu'));
+}
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showPanel = showPanel;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+</script>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+function newOrder() {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD formatı
+
+    const metaDoc = db.collection("meta").doc("seqCounter");
+
+    metaDoc.get().then(docSnap => {
+        let seq = 1;
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            if (data.date === todayStr) {
+                seq = data.value + 1;
+            }
+        }
+
+        // Yeni siparişi kaydet
+        let doc = db.collection("orders").doc();
+        doc.set({
+            id: doc.id,
+            seq: seq,
+            status: 'open',
+            cart: [],
+            payment: '',
+            created: firebase.firestore.Timestamp.fromDate(now),
+            user: currentUser.username
+        });
+
+        // Sayaç güncelle
+        metaDoc.set({ date: todayStr, value: seq });
+
+        // Arayüzü güncelle
+        currentOrderId = doc.id;
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('mainContent').classList.add('active');
+        document.getElementById('mainPanel').classList.add('order-mode');
+        document.getElementById('cartBox').style.display = 'flex';
+        document.querySelector('.category-bar').style.display = 'flex';
+        document.getElementById('products').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'flex';
+
+        renderCategorySelects();
+        showCategory(categories[0]);
+    }).catch(error => handleError(error, 'Yeni sipariş oluşturulurken bir hata oluştu'));
+}
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showPanel = showPanel;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+</script>
+<!-- HTML2PDF CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+function newOrder() {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD formatı
+
+    const metaDoc = db.collection("meta").doc("seqCounter");
+
+    metaDoc.get().then(docSnap => {
+        let seq = 1;
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            if (data.date === todayStr) {
+                seq = data.value + 1;
+            }
+        }
+
+        // Yeni siparişi kaydet
+        let doc = db.collection("orders").doc();
+        doc.set({
+            id: doc.id,
+            seq: seq,
+            status: 'open',
+            cart: [],
+            payment: '',
+            created: firebase.firestore.Timestamp.fromDate(now),
+            user: currentUser.username
+        });
+
+        // Sayaç güncelle
+        metaDoc.set({ date: todayStr, value: seq });
+
+        // Arayüzü güncelle
+        currentOrderId = doc.id;
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('mainContent').classList.add('active');
+        document.getElementById('mainPanel').classList.add('order-mode');
+        document.getElementById('cartBox').style.display = 'flex';
+        document.querySelector('.category-bar').style.display = 'flex';
+        document.getElementById('products').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'flex';
+
+        renderCategorySelects();
+        showCategory(categories[0]);
+    }).catch(error => handleError(error, 'Yeni sipariş oluşturulurken bir hata oluştu'));
+}
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showPanel = showPanel;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+</script>
+
+<script>
+// Modal stilleri için JavaScript
+const modalStyles = {
+    modal: {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        background: 'white',
+        padding: '25px',
+        borderRadius: '15px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        zIndex: 1001,
+        width: '90%',
+        maxWidth: '800px',
+        maxHeight: '90vh',
+        overflowY: 'auto'
+    },
+    backdrop: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.5)',
+        zIndex: 1000
+    }
+};
+
+// Stil nesnesini global scope'a ekle
+window.modalStyles = modalStyles;
+
+// Chart.js yükleme kontrolü
+window.addEventListener('load', function() {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js yüklenemedi!');
+        alert('Grafik kütüphanesi yüklenemedi. Lütfen internet bağlantınızı kontrol edin.');
+    } else {
+        console.log('Chart.js başarıyla yüklendi');
+    }
+});
+
+// Stil eklemesi
+const styleSheet = document.createElement("style");
+styleSheet.innerText = modalStyles;
+document.head.appendChild(styleSheet);
+
+function newOrder() {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD formatı
+
+    const metaDoc = db.collection("meta").doc("seqCounter");
+
+    metaDoc.get().then(docSnap => {
+        let seq = 1;
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            if (data.date === todayStr) {
+                seq = data.value + 1;
+            }
+        }
+
+        // Yeni siparişi kaydet
+        let doc = db.collection("orders").doc();
+        doc.set({
+            id: doc.id,
+            seq: seq,
+            status: 'open',
+            cart: [],
+            payment: '',
+            created: firebase.firestore.Timestamp.fromDate(now),
+            user: currentUser.username
+        });
+
+        // Sayaç güncelle
+        metaDoc.set({ date: todayStr, value: seq });
+
+        // Arayüzü güncelle
+        currentOrderId = doc.id;
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('mainContent').classList.add('active');
+        document.getElementById('mainPanel').classList.add('order-mode');
+        document.getElementById('cartBox').style.display = 'flex';
+        document.querySelector('.category-bar').style.display = 'flex';
+        document.getElementById('products').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'flex';
+
+        renderCategorySelects();
+        showCategory(categories[0]);
+    }).catch(error => handleError(error, 'Yeni sipariş oluşturulurken bir hata oluştu'));
+}
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showPanel = showPanel;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+</script>
+</head>
+<body>
+
+<!-- MENÜ -->
+<button class="menu-toggle" id="menuToggle" style="display:none;">☰</button>
+<button class="new-order-btn" id="newOrderBtn" onclick="newOrder()" style="display:none;" title="Yeni Sipariş">+</button>
+<div class="sidebar" id="sidebar">
+    <button class="close-btn" onclick="toggleMenu()">×</button>
+    <button class="sidebar-link active" id="menuActive" onclick="showPanel('orders')">Aktif Siparişler</button>
+    <button class="sidebar-link" id="menuClosed" onclick="showPanel('completed')">Tamamlanan Siparişler</button>
+
+<button class="sidebar-link" id="sidebarProductAdmin" onclick="showPanel('products')">Ürün Yönetimi</button>
+<button class="sidebar-link" id="sidebarExpenses" onclick="showPanel('expenses')">Gider Yönetimi</button>
+<button class="sidebar-link" id="sidebarReport" onclick="showPanel('report')">Rapor</button>
+        <button class="sidebar-link" id="sidebarInvoices" onclick="showPanel('invoices')">Fatura Yönetimi</button>
+        <button class="sidebar-link" onclick="logout()">Çıkış</button>
+</div>
+
+<!-- GİRİŞ EKRANI -->
+<div id="loginBox">
+<h2>Gadai POS (Online)</h2>
+<div class="input-row">
+<label>Kullanıcı Adı</label>
+<input autocomplete="off" id="username" type="text"/>
+</div>
+<div class="input-row">
+<label>Şifre</label>
+<input id="password" type="password"/>
+</div>
+<button onclick="login()">Giriş Yap</button>
+<div id="loginError" style="color:red; margin-top:10px; display:none;">Kullanıcı adı veya şifre hatalı!</div>
+</div>
+
+<!-- ANA PANEL -->
+<div id="mainPanel" style="display:none; position:relative;">
+<button id="logoutBtn" onclick="logout()">Çıkış</button>
+<h2 id="welcomeText"></h2>
+<div class="active panel" id="orderSection">
+<h3 id="orderSectionTitle" style="text-align:center; margin-top:8px;">Aktif Siparişler</h3>
+<div class="order-list" id="orderList"></div>
+<button id="clearAllBtn" onclick="clearAllOrders()" style="display:none;">Tümünü Sil</button>
+</div>
+<div class="panel" id="mainContent">
+<div id="cartBox" style="display:none;">
+<div id="printArea">
+<button onclick="yazdirAlani()" style="background:#2e7d32;color:#fff;width:100%;margin-bottom:8px;">Yazdır</button>
+<div id="cartOrderNo" style="display:none;"></div>
+<button onclick="showPanel('orders')" style="background:#1976d2; color:#fff; width:100%; margin-bottom:13px;">Sipariş Listesine Dön</button>
+<b>Sepet</b>
+<ul id="cartList"></ul>
+<div id="cart-total">Toplam: 0₺</div>
+<div id="paymentTypes">
+<button class="payBtn" id="payNakit" onclick="selectPayment('Nakit')">Nakit</button>
+<button class="payBtn" id="payKart" onclick="selectPayment('Kart')">Kart</button>
+<button class="payBtn" id="payQR" onclick="selectPayment('QR')">QR</button>
+</div>
+<button id="completeSale" onclick="completeSale()">Satışı Tamamla</button>
+<div id="saleMsg">Satış tamamlandı!</div>
+</div>
+</div>
+<div id="rightPanel">
+<div class="category-bar"></div>
+<div id="products"></div>
+</div>
+</div>
+<div class="panel" id="reportPanel"></div>
+<div class="panel" id="productAdminPanel"></div>
+<div class="panel" id="invoicePanel"></div>
+<div class="panel" id="userPanel"></div>
+<div class="panel" id="expensesPanel">
+    <h2>Gider Yönetimi</h2>
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="expenseDescription" placeholder="Gider Açıklaması" style="flex: 1;">
+            <input type="number" id="expenseAmount" placeholder="Tutar" style="width: 150px;">
+            <input type="date" id="expenseDate" style="width: 150px;">
+            <select id="expensePaymentType" style="width: 150px;">
+                <option value="Nakit">Nakit</option>
+                <option value="Kart">Kart</option>
+            </select>
+            <button onclick="addExpense()" style="background: #4caf50;">Gider Ekle</button>
+        </div>
+        <button onclick="downloadExpensesPDF()" style="background: #1976d2; margin-top: 10px;">PDF İndir</button>
+    </div>
+    <div id="expensesList"></div>
+</div>
+</div>
+
+<script>
+// --- FIREBASE AYARLARI ---
+const firebaseConfig = {
+  apiKey: "AIzaSyCXselRA0pOVwbQHnBrNanJVhVQylOogvE",
+  authDomain: "gadaipos-cee3e.firebaseapp.com",
+  projectId: "gadaipos-cee3e",
+  storageBucket: "gadaipos-cee3e.appspot.com",
+  messagingSenderId: "558326113513",
+  appId: "1:558326113513:web:acd3b0e82a5e53ce19fc78"
+};
+
+// Sepete ürün ekleme fonksiyonu
+window.addToCart = function(pid) {
+  if (!currentOrderId) {
+    alert('Lütfen önce yeni bir sipariş oluşturun');
+    return;
+  }
+  
+  let order = orders.find(o => o.id === currentOrderId);
+  if (!order) {
+    alert('Sipariş bulunamadı');
+    return;
+  }
+  
+  let prod = products.find(p => p.id === pid);
+  if (!prod) {
+    alert('Ürün bulunamadı');
+    return;
+  }
+  
+  let cart = order.cart || [];
+  let existingItem = cart.find(x => x.id === pid);
+  
+  if (existingItem) {
+    existingItem.qty++;
+  } else {
+    cart.push({
+      id: prod.id,
+      name: prod.name,
+      price: prod.price,
+      qty: 1
+    });
+  }
+  
+  // Firestore'a kaydet
+  db.collection("orders").doc(currentOrderId).update({ cart })
+    .then(() => {
+      console.log('Ürün sepete eklendi:', prod.name);
+      updateCart(); // Sepeti güncelle
+    })
+    .catch(error => {
+      console.error('Sepete ekleme hatası:', error);
+      alert('Ürün sepete eklenirken bir hata oluştu');
+    });
+};
+
+// Firebase başlatma ve güvenlik kontrolleri
+let db;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  
+  // Firestore kurallarını kontrol et
+  db.collection("orders").limit(1).get()
+    .then(() => {
+      console.log('Firestore bağlantısı başarılı');
+    })
+    .catch(error => {
+      if (error.code === 'permission-denied') {
+        console.error('Firestore güvenlik kuralları doğru yapılandırılmamış');
+        alert('Veritabanı erişim hatası. Lütfen yönetici ile iletişime geçin.');
+      } else {
+        console.error('Firestore bağlantı hatası:', error);
+        alert('Veritabanına bağlanılamadı. Lütfen internet bağlantınızı kontrol edin.');
+      }
+    });
+} catch (error) {
+  console.error('Firebase başlatma hatası:', error);
+  alert('Sistem başlatılamadı. Lütfen daha sonra tekrar deneyin.');
+}
+
+// Güvenli veri işleme yardımcı fonksiyonları
+function sanitizeInput(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[<>]/g, '');
+}
+
+function validateNumber(num) {
+  return !isNaN(parseFloat(num)) && isFinite(num) && num >= 0;
+}
+
+function handleError(error, message = 'Bir hata oluştu') {
+  console.error(error);
+  alert(message);
+}
+
+// -- SON KULLANICI BİLGİLERİ (Değiştirme!) --
+
+
+const users = [
+  {
+    username: "admin",
+    password: "admin123",
+    allowedPanels: ["orders", "completed", "report", "products", "expenses", "invoices"]
+  },
+  {
+    username: "personel",
+    password: "personel123",
+    allowedPanels: ["orders", "completed", "expenses", "invoices"]
+  },
+  {
+    username: "mudur",
+    password: "mudur123",
+    allowedPanels: ["orders", "completed", "report", "expenses"]
+  }
+];
+
+
+
+// --- GLOBAL DEĞİŞKENLER ---
+let categories = [], products = [], orders = [];
+let orderIdCounter = 1, currentUser = null, currentOrderId = null, currentOrderView = "active";
+let unsubCats=null, unsubProds=null, unsubOrders=null;
+let firstOrderOpen = true;
+
+// --- FIRESTORE'DAN GERÇEK ZAMANLI VERİYİ TAKİP ET ---
+function listenFirestore() {
+  if(unsubCats) unsubCats();
+  if(unsubProds) unsubProds();
+  if(unsubOrders) unsubOrders();
+  
+  unsubCats = db.collection("categories").onSnapshot(snap=>{
+    categories = snap.docs.map(doc=>doc.data().name);
+    renderCategorySelects();
+  });
+  
+  unsubProds = db.collection("products").onSnapshot(snap=>{
+    products = snap.docs.map(doc=>({...doc.data(), id:doc.id}));
+    renderCategorySelects();
+    if(currentOrderId) showCategory(products.find(x=>x.category===categories[0]) ? categories[0] : categories[1]);
+    renderAdminProducts();
+  });
+  
+  unsubOrders = db.collection("orders").orderBy("created","desc").onSnapshot(snap=>{
+    orders = snap.docs.map(doc=>({...doc.data(), id:doc.id, created: doc.data().created ? doc.data().created.toDate() : new Date()}));
+    renderOrders();
+    updateCart();
+  });
+}
+
+// --- KULLANICI GİRİŞ/ÇIKIŞ ---
+function login() {
+  const username = sanitizeInput(document.getElementById('username').value.trim());
+  const password = document.getElementById('password').value;
+  
+  if (!username || !password) {
+    document.getElementById('loginError').style.display = '';
+    document.getElementById('loginError').innerText = 'Kullanıcı adı ve şifre gerekli!';
+    return;
+  }
+  
+  // Basit kullanıcı doğrulama
+  const user = users.find(u => u.username === username && u.password === password);
+  
+  if (user) {
+    currentUser = user;
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('mainPanel').style.display = '';
+    document.getElementById('welcomeText').innerText = `Hoşgeldin, ${sanitizeInput(currentUser.username)}`;
+    document.getElementById('menuToggle').style.display = "";
+    document.getElementById('newOrderBtn').style.display = "";
+    
+    // Yetkiye göre menü öğelerini göster/gizle
+    document.getElementById('sidebarProductAdmin').style.display = currentUser.allowedPanels.includes('products') ? "" : "none";
+    document.getElementById('sidebarExpenses').style.display = currentUser.allowedPanels.includes('expenses') ? "" : "none";
+    document.getElementById('sidebarReport').style.display = currentUser.allowedPanels.includes('report') ? "" : "none";
+    document.getElementById('sidebarInvoices').style.display = currentUser.allowedPanels.includes('invoices') ? "" : "none";
+        
+    // Firebase dinleyicilerini başlat
+    listenFirestore();
+    
+    // Panel göster
+    onLoginSuccess();
+    
+    if (firstOrderOpen) {
+      firstOrderOpen = false;
+      setTimeout(() => {
+        if (orders.length === 0) {
+          newOrder();
+        }
+      }, 900);
+    }
+  } else {
+    document.getElementById('loginError').style.display = '';
+    document.getElementById('loginError').innerText = 'Kullanıcı adı veya şifre hatalı!';
+  }
+}
+
+function logout() {
+  currentUser = null;
+  currentOrderId = null;
+  document.getElementById('mainPanel').style.display = 'none';
+  document.getElementById('loginBox').style.display = '';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('menuToggle').style.display = "none";
+  document.getElementById('newOrderBtn').style.display = "none";
+  document.getElementById('sidebar').classList.remove('active');
+  if(unsubCats) unsubCats();
+  if(unsubProds) unsubProds();
+  if(unsubOrders) unsubOrders();
+}
+
+// --- PANEL GEÇİŞLERİ ---
+function toggleMenu() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+    }
+}
+
+
+function showPanel(panel) {
+    if (!currentUser || !currentUser.allowedPanels.includes(panel)) {
+        console.warn("Erişim izni yok:", panel);
+        return; // Yetki yoksa durdur
+    }
+
+    // Önce sipariş modunu kaldır
+    document.getElementById('mainPanel').classList.remove('order-mode');
+    document.getElementById('cartBox').style.display = 'none';
+    document.querySelector('.category-bar').style.display = 'none';
+    document.getElementById('products').style.display = 'none';
+    document.getElementById('rightPanel').style.display = 'none';
+    
+    document.querySelectorAll('.sidebar-link').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    
+    if(panel==="orders") {
+        document.getElementById('menuActive').classList.add('active');
+        currentOrderView="active";
+        document.getElementById('orderSection').classList.add('active');
+        document.getElementById('orderSectionTitle').innerText = "Aktif Siparişler";
+        renderOrders();
+        currentOrderId = null;
+    }
+    else if(panel==="completed") {
+        document.getElementById('menuClosed').classList.add('active');
+        currentOrderView="closed";
+        document.getElementById('orderSection').classList.add('active');
+        document.getElementById('orderSectionTitle').innerText = "Tamamlanan Siparişler";
+        renderCompletedOrders();
+        currentOrderId = null;
+    }
+    else if(panel==="report") {
+        document.getElementById('sidebarReport').classList.add('active');
+        document.getElementById('reportPanel').classList.add('active');
+        renderReportPanel();
+    }
+    else if(panel==="products") {
+        document.getElementById('sidebarProductAdmin').classList.add('active');
+        document.getElementById('productAdminPanel').classList.add('active');
+        renderProductAdminPanel();
+    }
+    else if(panel==="expenses") {
+        document.getElementById('sidebarExpenses').classList.add('active');
+        document.getElementById('expensesPanel').classList.add('active');
+        renderExpenses();
+    }
+    else if(panel==="invoices") {
+        document.getElementById('sidebarInvoices').classList.add('active');
+        document.getElementById('invoicePanel').classList.add('active');
+        renderInvoicePanel();
+    }
+    else if(panel==="users") {
+        document.getElementById('sidebarUsers').classList.add('active');
+        document.getElementById('userPanel').classList.add('active');
+        renderUserPanel();
+    }
+
+    // Menüyü kapat
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        setTimeout(() => {
+            sidebar.classList.remove('active');
+        }, 150);
+    }
+}
+
+// --- KATEGORİLER ---
+function renderCategorySelects() {
+  let sel = document.getElementById('newCat');
+  if (sel) sel.innerHTML = categories.map(c=>`<option value="${c}">${c[0].toUpperCase()+c.slice(1)}</option>`).join('');
+  
+  let cl = document.getElementById('catList');
+  if(cl) cl.innerHTML = categories.map(c=>`${c} <button onclick="removeCategory('${c}')" style="font-size:11px;">Sil</button>`).join(' ');
+  
+  let catBar = document.querySelector(".category-bar");
+  if (catBar) {
+    catBar.innerHTML = categories.map(c=>`<button class="cat-btn" id="cat${c}" onclick="showCategory('${c}')">${c[0].toUpperCase()+c.slice(1)}</button>`).join('');
+  }
+}
+
+function addCategory() {
+  let name = sanitizeInput(document.getElementById('newCatName').value.trim());
+  if (!name) return;
+  if (categories.includes(name)) {
+    showCatMsg("Bu kategori zaten var!", "red");
+    return;
+  }
+  
+  db.collection("categories").add({ name })
+    .catch(error => handleError(error, 'Kategori eklenirken bir hata oluştu'));
+  
+  document.getElementById('newCatName').value = "";
+  showCatMsg("Eklendi!", "green");
+}
+
+function showCatMsg(msg, color) {
+  let s = document.getElementById('catAddMsg');
+  s.innerText = msg;
+  s.style.color = color;
+  s.style.display = "";
+  setTimeout(()=>{ s.style.display="none"; }, 1300);
+}
+
+function removeCategory(cat) {
+  if (!confirm(`${cat} kategorisini silmek istiyor musun? (O kategoriye ait ürünler varsa önce onları silmelisin.)`)) return;
+  
+  db.collection("products").where("category","==",cat).get()
+    .then(snap=>{
+      if (!snap.empty) {
+        alert("Bu kategoride ürün var, önce ürünleri sil!");
+        return;
+      }
+      db.collection("categories").where("name","==",cat).get()
+        .then(snap2=>{
+          snap2.forEach(doc=>doc.ref.delete());
+        })
+        .catch(error => handleError(error, 'Kategori silinirken bir hata oluştu'));
+    })
+    .catch(error => handleError(error, 'Kategori kontrol edilirken bir hata oluştu'));
+}
+
+// --- ÜRÜNLER ---
+function renderAdminProducts() {
+  let html = "";
+  products.forEach((prod, idx) => {
+    html += `<tr>
+      <td><input type="text" value="${sanitizeInput(prod.name)}" onchange="editProduct('${prod.id}','name',this.value)"></td>
+      <td><input type="number" min="1" value="${prod.price}" onchange="editProduct('${prod.id}','price',this.value)"></td>
+      <td>
+        <select onchange="editProduct('${prod.id}','category',this.value)">
+          ${categories.map(c=>`<option value="${c}" ${prod.category===c?'selected':''}>${c[0].toUpperCase()+c.slice(1)}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <button class="adminActionBtn" style="background:#e91e63;" onclick="removeProduct('${prod.id}')">Sil</button>
+      </td>
+    </tr>`;
+  });
+  
+  let rows = document.getElementById('adminProductRows');
+  if(rows) rows.innerHTML = html;
+}
+
+function addProduct() {
+  const name = sanitizeInput(document.getElementById('newName').value.trim());
+  const price = parseFloat(document.getElementById('newPrice').value);
+  const cat = sanitizeInput(document.getElementById('newCat').value);
+  
+  if (!name || !validateNumber(price) || !cat) {
+    alert("Tüm alanları doğru doldurun.");
+    return;
+  }
+  
+  try {
+    db.collection("products").add({ name, price, category: cat })
+      .catch(error => handleError(error, 'Ürün eklenirken bir hata oluştu'));
+    
+    document.getElementById('newName').value = "";
+    document.getElementById('newPrice').value = "";
+  } catch (error) {
+    handleError(error, 'Ürün eklenirken bir hata oluştu');
+  }
+}
+
+function editProduct(id, field, value) {
+  if (!id || !field) return;
+  
+  let prod = products.find(x => x.id === id);
+  if (!prod) return;
+  
+  try {
+    let data = {};
+    if (field === "name") data.name = sanitizeInput(value);
+    if (field === "price") {
+      const price = parseFloat(value);
+      if (!validateNumber(price)) {
+        alert("Geçerli bir fiyat girin");
+        return;
+      }
+      data.price = price;
+    }
+    if (field === "category") data.category = sanitizeInput(value);
+    
+    db.collection("products").doc(id).update(data)
+      .catch(error => handleError(error, 'Ürün güncellenirken bir hata oluştu'));
+  } catch (error) {
+    handleError(error, 'Ürün güncellenirken bir hata oluştu');
+  }
+}
+
+function removeProduct(id) {
+  if (!confirm("Bu ürünü silmek istediğine emin misin?")) return;
+  
+  db.collection("products").doc(id).delete()
+    .catch(error => handleError(error, 'Ürün silinirken bir hata oluştu'));
+}
+
+function renderProductAdminPanel() {
+  let html = `
+    <h2>Ürün Yönetimi</h2>
+    <div style="margin-bottom:16px;">
+      <label><b>Yeni Kategori:</b></label>
+      <input id="newCatName" type="text" placeholder="Kategori Adı" style="width:130px;">
+      <button onclick="addCategory()" style="background:#1a9a41; font-size:15px;">Kategori Ekle</button>
+      <span id="catAddMsg" style="color:green; display:none; font-size:15px;">Eklendi</span>
+    </div>
+    <table border="1" width="100%">
+      <thead>
+        <tr>
+          <th>Ad</th><th>Fiyat (₺)</th><th>Kategori</th><th>İşlem</th>
+        </tr>
+      </thead>
+      <tbody id="adminProductRows"></tbody>
+      <tfoot>
+        <tr>
+          <td><input id="newName" type="text" placeholder="Ad"></td>
+          <td><input id="newPrice" type="number" min="1" placeholder="Fiyat"></td>
+          <td>
+            <select id="newCat"></select>
+          </td>
+          <td><button onclick="addProduct()" style="background:#1a9a41;">Ekle</button></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div style="margin-top:15px;">
+    <b>Kategoriler:</b>
+    <span id="catList"></span>
+  </div>
+  <button onclick="showPanel('orders')" style="background:#1976d2; margin-top:18px;">Siparişlere Dön</button>
+`;
+document.getElementById('productAdminPanel').innerHTML = html;
+renderCategorySelects();
+renderAdminProducts();
+}
+
+// --- ÜRÜN GÖSTERİMİ ve SEPET ---
+
+
+function showCategory(cat) {
+  if (currentOrderId == null) return;
+
+  renderCategorySelects();
+  categories.forEach(c => {
+    let btn = document.getElementById('cat' + c);
+    if (btn) btn.classList.remove('active');
+  });
+
+  let activeBtn = document.getElementById('cat' + cat);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  const p = products.filter(x => x.category === cat);
+  const container = document.getElementById('products');
+  if (!container) return;
+
+  // Harf grupları oluştur
+  const letterGroups = {};
+  p.forEach(prod => {
+    const firstLetter = sanitizeInput(prod.name[0].toUpperCase());
+    if (!letterGroups[firstLetter]) {
+      letterGroups[firstLetter] = [];
+    }
+    letterGroups[firstLetter].push(prod);
+  });
+
+  // Harf filtre butonları
+  let letterBarHtml = `<div style="margin-bottom:12px; display:flex; flex-wrap:wrap; gap:10px;">`;
+  Object.keys(letterGroups).sort().forEach(letter => {
+    letterBarHtml += `<button onclick="filterProductsByLetter('${letter}')" style="padding:6px 12px; font-weight:bold; background:#e91e63; color:white; border:none; border-radius:6px;">${letter}</button>`;
+  });
+  letterBarHtml += `</div>`;
+  container.innerHTML = letterBarHtml;
+
+  // Tüm ürünleri başta göster
+  renderProducts(p);
+
+  // JS bellekte harf gruplarını sakla
+  window.filteredCategoryProducts = letterGroups;
+}
+
+
+
+function filterProductsByLetter(letter) {
+  if (!window.filteredCategoryProducts) return;
+  const products = window.filteredCategoryProducts[letter] || [];
+  const container = document.getElementById('products');
+
+  // Sadece harf butonlarını bırak, ürünleri sıfırla
+  const buttonsHtml = container.innerHTML.split("</div>")[0] + "</div>";
+  container.innerHTML = buttonsHtml;
+
+  // Seçilen harfle başlayan ürünleri göster
+  renderProducts(products);
+}
+
+function renderProducts(prodList) {
+  const container = document.getElementById('products');
+  let html = "";
+  prodList.forEach(prod => {
+    html += `<div class="product">
+      <div style="font-weight:bold;">${sanitizeInput(prod.name)}</div>
+      <div>${prod.price}₺</div>
+      <button onclick="addToCart('${prod.id}')">Sepete Ekle</button>
+    </div>`;
+  });
+  container.innerHTML += html;
+}
+
+function updateCart() {
+if(currentOrderId==null) {
+  document.getElementById('cartOrderNo').style.display = "none";
+  return;
+}
+
+let order = orders.find(o=>o.id===currentOrderId);
+if(!order) return;
+
+document.getElementById('cartOrderNo').style.display = "";
+document.getElementById('cartOrderNo').innerText = "Sipariş #" + order.id;
+
+let html = "";
+let total = 0;
+(order.cart||[]).forEach(item => {
+  html += `<li>${sanitizeInput(item.name)} x ${item.qty} = ${item.price * item.qty}₺
+    <button onclick="decreaseQty('${item.id}')" style="background:#c62828;color:white;padding:2px 6px;font-size:15px; border-radius:5px;">-</button>
+    <button onclick="increaseQty('${item.id}')" style="background:#2e7d32;color:white;padding:2px 6px;font-size:15px; border-radius:5px;">+</button>
+  </li>`;
+  total += item.price * item.qty;
+});
+
+document.getElementById('cartList').innerHTML = html;
+document.getElementById('cart-total').innerText = 'Toplam: ' + total + '₺';
+
+clearPaymentBtns();
+if(order.payment) {
+  if(order.payment==="Nakit") document.getElementById('payNakit').classList.add('selected');
+  if(order.payment==="Kart") document.getElementById('payKart').classList.add('selected');
+  if(order.payment==="QR") document.getElementById('payQR').classList.add('selected');
+}
+}
+
+function decreaseQty(pid) {
+if(currentOrderId==null) return;
+
+let order = orders.find(o=>o.id===currentOrderId);
+if(!order) return;
+
+let cart = order.cart || [];
+let idx = cart.findIndex(x => x.id === pid);
+if (idx > -1) {
+  cart[idx].qty--;
+  if (cart[idx].qty === 0) cart.splice(idx, 1);
+  
+  db.collection("orders").doc(order.id).update({ cart })
+    .catch(error => handleError(error, 'Sepet güncellenirken bir hata oluştu'));
+}
+}
+
+function increaseQty(pid) {
+if(currentOrderId==null) return;
+
+let order = orders.find(o=>o.id===currentOrderId);
+if(!order) return;
+
+let cart = order.cart || [];
+let item = cart.find(x => x.id === pid);
+
+if (item) {
+  if (!validateNumber(item.qty + 1)) {
+    alert("Maksimum ürün adedine ulaşıldı");
+    return;
+  }
+  item.qty++;
+  
+  db.collection("orders").doc(order.id).update({ cart })
+    .catch(error => handleError(error, 'Sepet güncellenirken bir hata oluştu'));
+}
+}
+
+function selectPayment(pt) {
+if(currentOrderId==null) return;
+
+let order = orders.find(o=>o.id===currentOrderId);
+if(!order) return;
+
+db.collection("orders").doc(order.id).update({ payment: pt })
+  .catch(error => handleError(error, 'Ödeme tipi güncellenirken bir hata oluştu'));
+}
+
+function clearPaymentBtns() {
+document.getElementById('payNakit').classList.remove('selected');
+document.getElementById('payKart').classList.remove('selected');
+document.getElementById('payQR').classList.remove('selected');
+}
+
+function completeSale() {
+  if (!currentOrderId) return;
+
+  try {
+    let order = orders.find(o => o.id === currentOrderId);
+    if (!order || !(order.cart || []).length) return;
+    if (!order.payment) {
+      alert("Ödeme tipini seçiniz!");
+      return;
+    }
+    
+    db.collection("orders").doc(order.id).update({
+      status: "closed",
+      completedAt: firebase.firestore.Timestamp.now(),
+      completedBy: currentUser?.username || 'unknown'
+    }).then(() => {
+      // Fiş yazdırma işlemi
+      const printContent = document.getElementById('printArea');
+      if (printContent) {
+        const originalContent = document.body.innerHTML;
+        const printStyles = `
+          <style>
+            @media print {
+              body { font-family: Arial, sans-serif; }
+              button { display: none !important; }
+              #cartOrderNo { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+              #cartList { padding-left: 0; }
+              #cartList li { margin-bottom: 8px; list-style: none; }
+              #cart-total { font-weight: bold; margin-top: 15px; }
+            }
+          </style>
+        `;
+
+        // Yazdırma işlemi için iframe kullan
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        iframe.contentDocument.write(printStyles + printContent.innerHTML);
+        iframe.contentDocument.close();
+        
+        iframe.contentWindow.print();
+        
+        // iframe'i temizle
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          
+          // Satış tamamlandı mesajını göster
+          document.getElementById('saleMsg').style.display = '';
+          
+          // Panel değiştir ve yeni sipariş oluştur
+          setTimeout(() => {
+            document.getElementById('saleMsg').style.display = 'none';
+            showPanel("orders");
+            newOrder();
+          }, 650);
+        }, 500);
+      }
+    }).catch(error => handleError(error, 'Satış tamamlanırken bir hata oluştu'));
+  } catch (error) {
+    handleError(error, 'Satış tamamlanırken bir hata oluştu');
+  }
+}
+
+// --- YAZDIRMA ---
+function yazdirAlani() {
+const printContent = document.getElementById('printArea');
+if (!printContent) return;
+
+const originalContent = document.body.innerHTML;
+const printStyles = `
+  <style>
+    @media print {
+      body { font-family: Arial, sans-serif; }
+      button { display: none !important; }
+      #cartOrderNo { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+      #cartList { padding-left: 0; }
+      #cartList li { margin-bottom: 8px; list-style: none; }
+      #cart-total { font-weight: bold; margin-top: 15px; }
+    }
+  </style>
+`;
+
+document.body.innerHTML = printStyles + printContent.innerHTML;
+window.print();
+document.body.innerHTML = originalContent;
+
+// Yazdırma sonrası event listener'ları yeniden bağla
+attachEventListeners();
+}
+
+// Event listener'ları yeniden bağlama
+function attachEventListeners() {
+    try {
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const closeBtn = document.querySelector('.close-btn');
+        
+        if (menuToggle) {
+            menuToggle.addEventListener('click', toggleMenu);
+        }
+        
+        // Menü dışına tıklandığında kapanması için
+        document.addEventListener('click', function(e) {
+            if (sidebar && sidebar.classList.contains('active')) {
+                if (!sidebar.contains(e.target) && e.target !== menuToggle) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+        
+        // Menü öğelerine tıklandığında menünün kapanması
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (sidebar) {
+                    setTimeout(() => {
+                        sidebar.classList.remove('active');
+                    }, 150);
+                }
+            });
+        });
+        
+    } catch (error) {
+        console.error('Event listener bağlama hatası:', error);
+    }
+}
+
+// Başlangıç verilerini oluştur
+async function initializeData() {
+  try {
+    // Kategorileri kontrol et
+    const catsSnapshot = await db.collection("categories").get();
+    if (catsSnapshot.empty) {
+      // Varsayılan kategorileri ekle
+      const defaultCategories = ["Yiyecek", "İçecek", "Tatlı"];
+      for (const cat of defaultCategories) {
+        await db.collection("categories").add({ name: cat });
+      }
+      console.log("Varsayılan kategoriler oluşturuldu");
+    }
+
+    // Örnek ürünleri kontrol et
+    const prodsSnapshot = await db.collection("products").get();
+    if (prodsSnapshot.empty) {
+      // Varsayılan ürünleri ekle
+      const defaultProducts = [
+        { name: "Hamburger", price: 80, category: "Yiyecek" },
+        { name: "Pizza", price: 90, category: "Yiyecek" },
+        { name: "Kola", price: 20, category: "İçecek" },
+        { name: "Ayran", price: 15, category: "İçecek" },
+        { name: "Künefe", price: 50, category: "Tatlı" }
+      ];
+      for (const prod of defaultProducts) {
+        await db.collection("products").add(prod);
+      }
+      console.log("Varsayılan ürünler oluşturuldu");
+    }
+  } catch (error) {
+    console.error("Başlangıç verileri oluşturulurken hata:", error);
+  }
+}
+
+// Sayfa yüklendiğinde event listener'ları bağla
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    attachEventListeners();
+    initializeData(); // Başlangıç verilerini oluştur
+  } catch (error) {
+    console.error('Sayfa yükleme hatası:', error);
+  }
+});
+
+function renderReportPanel() {
+  const today = new Date();
+  const lastWeek = new Date();
+  lastWeek.setDate(lastWeek.getDate() - 7);
+
+  let html = `
+    <h2>Satış Raporu</h2>
+    
+    <!-- Tarih Filtreleme -->
+    <div style="background:#fff; padding:20px; border-radius:10px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+      <h3 style="margin:0 0 15px 0; color:#e91e63;">Tarih Filtresi</h3>
+      <div style="display:flex; gap:15px; flex-wrap:wrap;">
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Başlangıç Tarihi:</label>
+          <input type="date" id="startDate" style="padding:8px; border:1px solid #ddd; border-radius:5px;"
+            value="${lastWeek.toISOString().split('T')[0]}">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Bitiş Tarihi:</label>
+          <input type="date" id="endDate" style="padding:8px; border:1px solid #ddd; border-radius:5px;"
+            value="${today.toISOString().split('T')[0]}">
+        </div>
+        <div style="align-self:flex-end;">
+          <button onclick="updateReport()" style="background:#1976d2; padding:8px 20px;">Filtrele</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hızlı Tarih Seçimi -->
+    <div style="display:flex; gap:10px; margin:15px 0; flex-wrap:wrap;">
+      <button onclick="setQuickDate('today')" style="background:#4caf50;">Bugün</button>
+      <button onclick="setQuickDate('yesterday')" style="background:#2196f3;">Dün</button>
+      <button onclick="setQuickDate('week')" style="background:#9c27b0;">Bu Hafta</button>
+      <button onclick="setQuickDate('month')" style="background:#ff9800;">Bu Ay</button>
+      <button onclick="setQuickDate('lastMonth')" style="background:#795548;">Geçen Ay</button>
+      <button onclick="setQuickDate('year')" style="background:#607d8b;">Bu Yıl</button>
+    </div>
+
+    <!-- Özet Kartları -->
+    <div id="reportSummary" style="display:flex; gap:15px; flex-wrap:wrap; margin:20px 0;"></div>
+
+    <!-- Satış Grafikleri -->
+    <div style="display:flex; flex-wrap:wrap; gap:20px; margin:20px 0;">
+      <!-- Ürün Gruplarına Göre Satışlar -->
+      <div style="flex:1; min-width:300px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+        <h3>Ürün Gruplarına Göre Satışlar</h3>
+        <div style="position:relative; height:300px;">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Ürünlere Göre Satışlar -->
+      <div style="flex:1; min-width:300px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+        <h3>En Çok Satan Ürünler</h3>
+        <div style="position:relative; height:300px;">
+          <canvas id="productsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ödeme Tipleri -->
+    <div style="margin:20px 0;">
+      <div style="background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+        <h3>Ödeme Tipleri Dağılımı</h3>
+        <div style="position:relative; height:300px;">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="showPanel('orders')" style="background:#1976d2; margin:20px 0;">Siparişlere Dön</button>
+  `;
+
+  document.getElementById('reportPanel').innerHTML = html;
+  setTimeout(() => updateReport(), 100);
+}
+
+// Rapor güncelleme fonksiyonu
+function updateReport() {
+  const startDate = new Date(document.getElementById('startDate').value);
+  const endDate = new Date(document.getElementById('endDate').value);
+  endDate.setHours(23, 59, 59, 999);
+
+  // Seçilen tarih aralığındaki ödenmiş faturaları al
+  db.collection('invoices')
+    .where('status', '==', 'paid')
+    .get()
+    .then(snapshot => {
+      let paidInvoicesTotal = 0;
+      
+      // Tarih aralığındaki faturaları filtrele
+      snapshot.forEach(doc => {
+        const paidAt = doc.data().paidAt?.toDate();
+        if (paidAt && paidAt >= startDate && paidAt <= endDate) {
+          paidInvoicesTotal += doc.data().amount;
+        }
+      });
+
+      // Seçilen tarih aralığındaki siparişleri filtrele
+      const filteredOrders = orders.filter(o => {
+        if (!o.completedAt || o.status !== 'closed') return false;
+        const orderDate = o.completedAt.toDate();
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+
+      // Kategori bazlı satışları hesapla
+      let categorySales = {};
+      let productSales = {};
+      let paymentTypes = { 'Nakit': 0, 'Kart': 0, 'QR': 0 };
+      let totalRevenue = 0;
+
+      filteredOrders.forEach(order => {
+        const orderTotal = (order.cart || []).reduce((sum, item) => {
+          // Ürün satışlarını hesapla
+          productSales[item.name] = (productSales[item.name] || 0) + (item.price * item.qty);
+          
+          // Kategori satışlarını hesapla
+          const product = products.find(p => p.id === item.id);
+          if (product) {
+            categorySales[product.category] = (categorySales[product.category] || 0) + (item.price * item.qty);
+          }
+          
+          return sum + (item.price * item.qty);
+        }, 0);
+
+        // Ödeme tiplerini hesapla
+        if (order.payment) {
+          paymentTypes[order.payment] = (paymentTypes[order.payment] || 0) + orderTotal;
+        }
+
+        totalRevenue += orderTotal;
+      });
+
+      // Net geliri hesapla (Toplam satış - Ödenen faturalar)
+      const netRevenue = totalRevenue - paidInvoicesTotal;
+
+      // Özet kartlarını güncelle
+      document.getElementById('reportSummary').innerHTML = `
+        <div style="background:#fff; padding:15px; border-radius:8px; flex:1; min-width:200px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <div style="font-size:14px; color:#666;">Brüt Satış</div>
+          <div style="font-size:24px; color:#e91e63; font-weight:bold;">${totalRevenue.toFixed(2)}₺</div>
+        </div>
+        <div style="background:#fff; padding:15px; border-radius:8px; flex:1; min-width:200px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <div style="font-size:14px; color:#666;">Ödenen Faturalar</div>
+          <div style="font-size:24px; color:#f44336; font-weight:bold;">-${paidInvoicesTotal.toFixed(2)}₺</div>
+        </div>
+        <div style="background:#fff; padding:15px; border-radius:8px; flex:1; min-width:200px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <div style="font-size:14px; color:#666;">Net Gelir</div>
+          <div style="font-size:24px; color:#4caf50; font-weight:bold;">${netRevenue.toFixed(2)}₺</div>
+        </div>
+        <div style="background:#fff; padding:15px; border-radius:8px; flex:1; min-width:200px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <div style="font-size:14px; color:#666;">Sipariş Sayısı</div>
+          <div style="font-size:24px; color:#1976d2; font-weight:bold;">${filteredOrders.length}</div>
+        </div>
+      `;
+
+      // Kategori grafiğini güncelle
+      const categoryCtx = document.getElementById('categoryChart');
+      if (categoryCtx) {
+        if (window.categoryChart instanceof Chart) {
+          window.categoryChart.destroy();
+        }
+        window.categoryChart = new Chart(categoryCtx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(categorySales),
+            datasets: [{
+              data: Object.values(categorySales),
+              backgroundColor: [
+                '#e91e63', '#2196f3', '#4caf50', '#ff9800', 
+                '#9c27b0', '#607d8b', '#795548', '#f44336'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: { font: { size: 12 } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const value = context.raw;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${context.label}: ${value.toFixed(2)}₺ (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Ürün satışları grafiğini güncelle
+      const productsCtx = document.getElementById('productsChart');
+      if (productsCtx) {
+        if (window.productsChart instanceof Chart) {
+          window.productsChart.destroy();
+        }
+        
+        // En çok satan 10 ürünü al
+        const topProducts = Object.entries(productSales)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10);
+
+        window.productsChart = new Chart(productsCtx, {
+          type: 'bar',
+          data: {
+            labels: topProducts.map(p => p[0]),
+            datasets: [{
+              label: 'Satış Tutarı (₺)',
+              data: topProducts.map(p => p[1]),
+              backgroundColor: '#e91e63',
+              borderColor: '#e91e63',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `${context.raw.toFixed(2)}₺`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return value + '₺';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Ödeme tipleri grafiğini güncelle
+      const paymentCtx = document.getElementById('paymentChart');
+      if (paymentCtx) {
+        if (window.paymentChart instanceof Chart) {
+          window.paymentChart.destroy();
+        }
+        window.paymentChart = new Chart(paymentCtx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(paymentTypes),
+            datasets: [{
+              data: Object.values(paymentTypes),
+              backgroundColor: [
+                '#4caf50',  // Nakit - Yeşil
+                '#2196f3',  // Kart - Mavi
+                '#ff9800'   // QR - Turuncu
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: { font: { size: 12 } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const value = context.raw;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${context.label}: ${value.toFixed(2)}₺ (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Fatura verisi alma hatası:', error);
+      alert('Rapor güncellenirken bir hata oluştu!');
+    });
+}
+
+// Hızlı tarih seçimi fonksiyonu güncellendi
+function setQuickDate(period) {
+  const today = new Date();
+  const startDate = document.getElementById('startDate');
+  const endDate = document.getElementById('endDate');
+  
+  switch(period) {
+    case 'today':
+      startDate.value = today.toISOString().split('T')[0];
+      endDate.value = today.toISOString().split('T')[0];
+      break;
+    case 'yesterday':
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      startDate.value = yesterday.toISOString().split('T')[0];
+      endDate.value = yesterday.toISOString().split('T')[0];
+      break;
+    case 'week':
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - today.getDay());
+      startDate.value = weekStart.toISOString().split('T')[0];
+      endDate.value = today.toISOString().split('T')[0];
+      break;
+    case 'month':
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      startDate.value = monthStart.toISOString().split('T')[0];
+      endDate.value = today.toISOString().split('T')[0];
+      break;
+    case 'lastMonth':
+      const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+      startDate.value = lastMonthStart.toISOString().split('T')[0];
+      endDate.value = lastMonthEnd.toISOString().split('T')[0];
+      break;
+    case 'year':
+      const yearStart = new Date(today.getFullYear(), 0, 1);
+      startDate.value = yearStart.toISOString().split('T')[0];
+      endDate.value = today.toISOString().split('T')[0];
+      break;
+  }
+  
+  updateReport();
+}
+
+// Excel'e aktarma fonksiyonu
+function exportToExcel() {
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+  
+  let csvContent = "data:text/csv;charset=utf-8,";
+  
+  // Başlık satırı
+  csvContent += "Tarih,Toplam Satış,Sipariş Sayısı,Ortalama Sipariş\n";
+  
+  // Filtrelenmiş siparişleri grupla
+  const dailyData = {};
+  orders.filter(o => {
+    if (!o.completedAt || o.status !== 'closed') return false;
+    const orderDate = o.completedAt.toDate();
+    return orderDate >= new Date(startDate) && orderDate <= new Date(endDate);
+  }).forEach(order => {
+    const date = order.completedAt.toDate().toLocaleDateString('tr-TR');
+    if (!dailyData[date]) {
+      dailyData[date] = {
+        total: 0,
+        count: 0
+      };
+    }
+    const total = (order.cart || []).reduce((sum, item) => sum + (item.price * item.qty), 0);
+    dailyData[date].total += total;
+    dailyData[date].count++;
+  });
+  
+  // Verileri CSV'ye ekle
+  Object.entries(dailyData).forEach(([date, data]) => {
+    const average = (data.total / data.count).toFixed(2);
+    csvContent += `${date},${data.total.toFixed(2)},${data.count},${average}\n`;
+  });
+  
+  // İndir
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `rapor_${startDate}_${endDate}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// PDF'e aktarma fonksiyonu
+async function exportToPDF() {
+  // Yükleniyor göstergesi
+  const loadingDiv = document.createElement('div');
+  loadingDiv.style.position = 'fixed';
+  loadingDiv.style.top = '50%';
+  loadingDiv.style.left = '50%';
+  loadingDiv.style.transform = 'translate(-50%, -50%)';
+  loadingDiv.style.padding = '20px';
+  loadingDiv.style.background = 'rgba(0,0,0,0.8)';
+  loadingDiv.style.color = 'white';
+  loadingDiv.style.borderRadius = '10px';
+  loadingDiv.style.zIndex = '9999';
+  loadingDiv.innerHTML = 'PDF hazırlanıyor...';
+  document.body.appendChild(loadingDiv);
+
+  try {
+    // Tarih aralığını al
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    // PDF içeriğini oluştur
+    const content = document.createElement('div');
+    content.style.padding = '20px';
+    content.style.background = 'white';
+    
+    // Başlık
+    content.innerHTML = `
+      <h1 style="color:#e91e63; text-align:center; margin-bottom:20px;">Satış Raporu</h1>
+      <p style="text-align:center; color:#666; margin-bottom:30px;">
+        ${new Date(startDate).toLocaleDateString('tr-TR')} - ${new Date(endDate).toLocaleDateString('tr-TR')}
+      </p>
+    `;
+    
+    // Özet bilgileri
+    const summaryDiv = document.createElement('div');
+    summaryDiv.style.marginBottom = '30px';
+    summaryDiv.innerHTML = document.getElementById('reportSummary').innerHTML;
+    content.appendChild(summaryDiv);
+    
+    // Grafikleri ekle
+    const chartsDiv = document.createElement('div');
+    chartsDiv.style.marginBottom = '30px';
+    
+    // Her grafiği ayrı ayrı dönüştür ve ekle
+    const charts = ['salesChart', 'paymentChart', 'hourlyChart'];
+    for (const chartId of charts) {
+      const canvas = document.getElementById(chartId);
+      if (canvas) {
+        const chartImage = canvas.toDataURL('image/png', 1.0);
+        chartsDiv.innerHTML += `
+          <div style="margin-bottom:20px;">
+            <img src="${chartImage}" style="width:100%; max-width:800px; height:auto;">
+          </div>
+        `;
+      }
+    }
+    content.appendChild(chartsDiv);
+    
+    // En çok satan ürünler tablosu
+    const topProductsDiv = document.createElement('div');
+    topProductsDiv.style.marginBottom = '30px';
+    topProductsDiv.innerHTML = `
+      <h3 style="color:#e91e63; margin-bottom:10px;">En Çok Satan Ürünler</h3>
+      <table style="width:100%; border-collapse:collapse;">
+        ${document.getElementById('topProductsBody').innerHTML}
+      </table>
+    `;
+    content.appendChild(topProductsDiv);
+    
+    // Analiz kartları
+    const analysisDiv = document.createElement('div');
+    analysisDiv.style.marginBottom = '30px';
+    analysisDiv.innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px;">
+        <div>${document.getElementById('growthAnalysis').innerHTML}</div>
+        <div>${document.getElementById('peakHours').innerHTML}</div>
+        <div>${document.getElementById('categoryAnalysis').innerHTML}</div>
+      </div>
+    `;
+    content.appendChild(analysisDiv);
+    
+    // Alt bilgi
+    content.innerHTML += `
+      <div style="text-align:center; color:#666; margin-top:30px; font-size:12px;">
+        Bu rapor ${new Date().toLocaleString('tr-TR')} tarihinde oluşturulmuştur.
+      </div>
+    `;
+    
+    // PDF oluşturma seçenekleri
+    const opt = {
+      margin: 10,
+      filename: `satış_raporu_${startDate}_${endDate}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // PDF oluştur ve indir
+    await html2pdf().set(opt).from(content).save();
+    
+  } catch (error) {
+    console.error('PDF oluşturma hatası:', error);
+    alert('PDF oluşturulurken bir hata oluştu!');
+  } finally {
+    // Yükleniyor göstergesini kaldır
+    document.body.removeChild(loadingDiv);
+  }
+}
+
+// Fatura paneli HTML'i
+function renderInvoicePanel() {
+  let html = `
+    <h2>Fatura Yönetimi</h2>
+    
+    <!-- Fatura Ekleme Formu -->
+    <div style="background:#fff; padding:20px; border-radius:10px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+      <h3 style="margin:0 0 15px 0; color:#e91e63;">Yeni Fatura Ekle</h3>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Fatura No:</label>
+          <input type="text" id="invoiceNo" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Tedarikçi:</label>
+          <input type="text" id="supplier" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Fatura Tarihi:</label>
+          <input type="date" id="invoiceDate" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Vade Tarihi:</label>
+          <input type="date" id="dueDate" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Tutar (₺):</label>
+          <input type="number" id="amount" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Kategori:</label>
+          <select id="invoiceCategory" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+            <option value="hammadde">Hammadde</option>
+            <option value="elektrik">Elektrik</option>
+            <option value="su">Su</option>
+            <option value="dogalgaz">Doğalgaz</option>
+            <option value="kira">Kira</option>
+            <option value="diger">Diğer</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Açıklama:</label>
+          <textarea id="invoiceNote" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px; height:65px;"></textarea>
+        </div>
+        <div style="align-self:end;">
+          <button onclick="addInvoice()" style="width:100%; background:#4caf50;">Fatura Ekle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fatura Filtreleme -->
+    <div style="display:flex; gap:10px; margin:20px 0; flex-wrap:wrap;">
+      <button onclick="filterInvoices('all')" class="invoice-filter active" data-filter="all">Tümü</button>
+      <button onclick="filterInvoices('pending')" class="invoice-filter" data-filter="pending">Ödenmemiş</button>
+      <button onclick="filterInvoices('paid')" class="invoice-filter" data-filter="paid">Ödenmiş</button>
+      <button onclick="filterInvoices('overdue')" class="invoice-filter" data-filter="overdue">Vadesi Geçmiş</button>
+    </div>
+
+    <!-- Fatura Listesi -->
+    <div style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Fatura No</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Tedarikçi</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Tarih</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Vade</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Tutar</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Kategori</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Durum</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceList"></tbody>
+      </table>
+    </div>
+
+    <!-- Fatura İstatistikleri -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin:20px 0;">
+      <div style="background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; color:#666;">Toplam Borç</div>
+        <div id="totalDebt" style="font-size:24px; color:#f44336; font-weight:bold;">0₺</div>
+      </div>
+      <div style="background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; color:#666;">Bu Ay Ödenecek</div>
+        <div id="monthlyDue" style="font-size:24px; color:#ff9800; font-weight:bold;">0₺</div>
+      </div>
+      <div style="background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; color:#666;">Vadesi Geçmiş</div>
+        <div id="overdueAmount" style="font-size:24px; color:#e91e63; font-weight:bold;">0₺</div>
+      </div>
+      <div style="background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; color:#666;">Ödenen Faturalar</div>
+        <div id="paidAmount" style="font-size:24px; color:#4caf50; font-weight:bold;">0₺</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('invoicePanel').innerHTML = html;
+  updateInvoiceList();
+}
+
+// Fatura ekleme fonksiyonu
+async function addInvoice() {
+  const invoiceNo = document.getElementById('invoiceNo').value.trim();
+  const supplier = document.getElementById('supplier').value.trim();
+  const invoiceDate = document.getElementById('invoiceDate').value;
+  const dueDate = document.getElementById('dueDate').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+  const category = document.getElementById('invoiceCategory').value;
+  const note = document.getElementById('invoiceNote').value.trim();
+
+  if (!invoiceNo || !supplier || !invoiceDate || !dueDate || !amount) {
+    alert('Lütfen tüm zorunlu alanları doldurun!');
+    return;
+  }
+
+  try {
+    await db.collection('invoices').add({
+      invoiceNo,
+      supplier,
+      invoiceDate,
+      dueDate,
+      amount,
+      category,
+      note,
+      status: 'pending',
+      createdAt: firebase.firestore.Timestamp.now(),
+      createdBy: currentUser.username
+    });
+
+    // Formu temizle
+    document.getElementById('invoiceNo').value = '';
+    document.getElementById('supplier').value = '';
+    document.getElementById('invoiceDate').value = '';
+    document.getElementById('dueDate').value = '';
+    document.getElementById('amount').value = '';
+    document.getElementById('invoiceNote').value = '';
+
+    alert('Fatura başarıyla eklendi!');
+    updateInvoiceList();
+  } catch (error) {
+    console.error('Fatura ekleme hatası:', error);
+    alert('Fatura eklenirken bir hata oluştu!');
+  }
+}
+
+// Fatura listesini güncelleme
+async function updateInvoiceList(filter = 'all') {
+  try {
+    const snapshot = await db.collection('invoices').orderBy('dueDate', 'asc').get();
+    const invoices = [];
+    let totalDebt = 0;
+    let monthlyDue = 0;
+    let overdueAmount = 0;
+    let paidAmount = 0;
+
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    snapshot.forEach(doc => {
+      const invoice = { id: doc.id, ...doc.data() };
+      const dueDate = new Date(invoice.dueDate);
+      
+      // İstatistikleri hesapla
+      if (invoice.status === 'pending') {
+        totalDebt += invoice.amount;
+        if (dueDate < today) {
+          overdueAmount += invoice.amount;
+        }
+        if (dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear) {
+          monthlyDue += invoice.amount;
+        }
+      } else if (invoice.status === 'paid') {
+        paidAmount += invoice.amount;
+      }
+
+      // Filtreleme
+      if (filter === 'all' ||
+          (filter === 'pending' && invoice.status === 'pending') ||
+          (filter === 'paid' && invoice.status === 'paid') ||
+          (filter === 'overdue' && invoice.status === 'pending' && dueDate < today)) {
+        invoices.push(invoice);
+      }
+    });
+
+    // İstatistikleri güncelle
+    document.getElementById('totalDebt').innerText = totalDebt.toFixed(2) + '₺';
+    document.getElementById('monthlyDue').innerText = monthlyDue.toFixed(2) + '₺';
+    document.getElementById('overdueAmount').innerText = overdueAmount.toFixed(2) + '₺';
+    document.getElementById('paidAmount').innerText = paidAmount.toFixed(2) + '₺';
+
+    // Fatura listesini güncelle
+    document.getElementById('invoiceList').innerHTML = invoices.map(invoice => `
+      <tr>
+        <td style="border:1px solid #ddd; padding:8px;">${invoice.invoiceNo}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${invoice.supplier}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${new Date(invoice.invoiceDate).toLocaleDateString('tr-TR')}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${new Date(invoice.dueDate).toLocaleDateString('tr-TR')}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${invoice.amount.toFixed(2)}₺</td>
+        <td style="border:1px solid #ddd; padding:8px;">${invoice.category}</td>
+        <td style="border:1px solid #ddd; padding:8px;">
+          <span style="padding:4px 8px; border-radius:4px; font-size:12px; 
+            ${invoice.status === 'paid' 
+              ? 'background:#e8f5e9; color:#2e7d32;' 
+              : new Date(invoice.dueDate) < today
+                ? 'background:#ffebee; color:#c62828;'
+                : 'background:#fff3e0; color:#ef6c00;'
+            }">
+            ${invoice.status === 'paid' 
+              ? 'Ödendi' 
+              : new Date(invoice.dueDate) < today
+                ? 'Vadesi Geçmiş'
+                : 'Bekliyor'
+            }
+          </span>
+        </td>
+        <td style="border:1px solid #ddd; padding:8px;">
+          ${invoice.status === 'pending' ? `
+            <button onclick="payInvoice('${invoice.id}')" style="background:#4caf50; padding:4px 8px; font-size:12px;">
+              Öde
+            </button>
+          ` : ''}
+          <button onclick="deleteInvoice('${invoice.id}')" style="background:#f44336; padding:4px 8px; font-size:12px; margin-left:5px;">
+            Sil
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Filtre butonlarını güncelle
+    document.querySelectorAll('.invoice-filter').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.filter === filter) {
+        btn.classList.add('active');
+      }
+    });
+
+  } catch (error) {
+    console.error('Fatura listesi güncelleme hatası:', error);
+    alert('Fatura listesi güncellenirken bir hata oluştu!');
+  }
+}
+
+// Fatura ödeme fonksiyonu
+async function payInvoice(id) {
+  if (!confirm('Bu faturayı ödemek istediğinize emin misiniz?')) return;
+
+  try {
+    await db.collection('invoices').doc(id).update({
+      status: 'paid',
+      paidAt: firebase.firestore.Timestamp.now(),
+      paidBy: currentUser.username
+    });
+
+    alert('Fatura başarıyla ödendi!');
+    updateInvoiceList();
+  } catch (error) {
+    console.error('Fatura ödeme hatası:', error);
+    alert('Fatura ödenirken bir hata oluştu!');
+  }
+}
+
+// Fatura silme fonksiyonu
+async function deleteInvoice(id) {
+  if (!confirm('Bu faturayı silmek istediğinize emin misiniz?')) return;
+
+  try {
+    await db.collection('invoices').doc(id).delete();
+    alert('Fatura başarıyla silindi!');
+    updateInvoiceList();
+  } catch (error) {
+    console.error('Fatura silme hatası:', error);
+    alert('Fatura silinirken bir hata oluştu!');
+  }
+}
+
+// Fatura filtreleme
+function filterInvoices(filter) {
+  updateInvoiceList(filter);
+}
+
+// Sipariş arama ve filtreleme fonksiyonları
+function searchOrders(query) {
+  query = query.toLowerCase().trim();
+  return orders.filter(order => {
+    return (
+      (order.id.toLowerCase().includes(query) ||
+      order.user.toLowerCase().includes(query) ||
+      order.cart.some(item => item.name.toLowerCase().includes(query)))
+      &&
+      order.status === (currentOrderView === "active" ? 'open' : 'closed')
+    );
+  });
+}
+
+function filterOrders(filter) {
+  switch(filter) {
+    case 'price_asc':
+      return orders.sort((a, b) => getOrderTotal(a) - getOrderTotal(b));
+    case 'price_desc':
+      return orders.sort((a, b) => getOrderTotal(b) - getOrderTotal(a));
+    case 'time_asc':
+      return orders.sort((a, b) => a.created - b.created);
+    case 'time_desc':
+      return orders.sort((a, b) => b.created - a.created);
+    default:
+      return orders;
+  }
+}
+
+function getOrderTotal(order) {
+  return (order.cart || []).reduce((total, item) => total + (item.price * item.qty), 0);
+}
+
+function renderFilteredOrders() {
+  const searchQuery = document.getElementById('orderSearch').value;
+  const sortMethod = document.getElementById('orderSort').value;
+  
+  let filteredOrders = searchQuery ? searchOrders(searchQuery) : orders;
+  filteredOrders = filterOrders(sortMethod);
+  
+  renderOrders();
+}
+
+// Sayfa numaralarını oluşturan yardımcı fonksiyon
+function generatePageNumbers(currentPage, totalPages) {
+  let pages = [];
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(totalPages, currentPage + 2);
+
+  if (startPage > 1) {
+    pages.push(`<span>...</span>`);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(`
+      <button onclick="changePage(${i})" 
+        class="${i === currentPage ? 'active' : ''}">
+        ${i}
+      </button>
+    `);
+  }
+
+  if (endPage < totalPages) {
+    pages.push(`<span>...</span>`);
+  }
+
+  return pages.join('');
+}
+
+// Sayfa değiştirme fonksiyonu
+function changePage(page) {
+  localStorage.setItem('completedOrdersPage', page);
+  renderCompletedOrders();
+}
+
+// Arama gecikmesi için debounce fonksiyonu
+let searchTimeout = null;
+function debounceSearch(event) {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+  searchTimeout = setTimeout(() => {
+    filterCompletedOrders();
+  }, 300);
+}
+
+// Sipariş toplam tutarını hesaplama yardımcı fonksiyonu
+function getOrderTotal(order) {
+  return (order.cart || []).reduce((total, item) => total + ((item.price || 0) * (item.qty || 0)), 0);
+}
+
+// Filtreleme fonksiyonu
+function filterCompletedOrders() {
+  renderCompletedOrders();
+}
+
+// Sayfalama için değişkenler
+let currentPage = 1;
+const ordersPerPage = 10;
+let completedOrdersSearchTimeout = null; // Tamamlanan siparişler için arama gecikmesi
+
+// Tamamlanan siparişleri gösterme fonksiyonu güncellendi
+function renderCompletedOrders() {
+    // Arama ve sıralama değerlerini al
+    const searchQuery = document.getElementById('completedOrderSearch')?.value?.toLowerCase() || '';
+    const sortMethod = document.getElementById('completedOrderSort')?.value || 'time_desc';
+    
+    // Tamamlanan siparişleri filtrele
+    let completedOrders = orders.filter(o => o.status === 'closed');
+
+    // Arama filtrelemesi
+    if (searchQuery) {
+        completedOrders = completedOrders.filter(order => 
+            (order.seq || order.id).toString().toLowerCase().includes(searchQuery) ||
+            (order.user || '').toLowerCase().includes(searchQuery) ||
+            (order.cart || []).some(item => (item.name || '').toLowerCase().includes(searchQuery))
+        );
+    }
+
+    // Sıralama
+    completedOrders.sort((a, b) => {
+        switch(sortMethod) {
+            case 'time_desc':
+                return (b.completedAt?.toDate() || 0) - (a.completedAt?.toDate() || 0);
+            case 'time_asc':
+                return (a.completedAt?.toDate() || 0) - (b.completedAt?.toDate() || 0);
+            case 'number_desc':
+                return (b.seq || 0) - (a.seq || 0);
+            case 'number_asc':
+                return (a.seq || 0) - (b.seq || 0);
+            case 'amount_desc':
+                return getOrderTotal(b) - getOrderTotal(a);
+            case 'amount_asc':
+                return getOrderTotal(a) - getOrderTotal(b);
+            default:
+                return (b.completedAt?.toDate() || 0) - (a.completedAt?.toDate() || 0);
+        }
+    });
+
+    // Toplam sayfa sayısını hesapla
+    const totalPages = Math.ceil(completedOrders.length / ordersPerPage);
+    
+    // Geçerli sayfa için siparişleri al
+    const startIndex = (currentPage - 1) * ordersPerPage;
+    const ordersToShow = completedOrders.slice(startIndex, startIndex + ordersPerPage);
+
+    // Sayfalama kontrollerini oluştur
+    let paginationHtml = '<div class="pagination">';
+    
+    // İlk sayfa butonu
+    if (currentPage > 1) {
+        paginationHtml += `<button onclick="changePage(1)">İlk</button>`;
+    }
+    
+    // Önceki sayfa butonu
+    if (currentPage > 1) {
+        paginationHtml += `<button onclick="changePage(${currentPage - 1})">Önceki</button>`;
+    }
+    
+    // Sayfa numaraları
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+        paginationHtml += `
+            <button onclick="changePage(${i})" 
+                class="${i === currentPage ? 'active' : ''}">${i}</button>
+        `;
+    }
+    
+    // Sonraki sayfa butonu
+    if (currentPage < totalPages) {
+        paginationHtml += `<button onclick="changePage(${currentPage + 1})">Sonraki</button>`;
+    }
+    
+    // Son sayfa butonu
+    if (currentPage < totalPages) {
+        paginationHtml += `<button onclick="changePage(${totalPages})">Son</button>`;
+    }
+    
+    paginationHtml += '</div>';
+    
+    // Sayfa bilgisi
+    const pageInfo = `
+        <div class="page-info">
+            Toplam ${completedOrders.length} sipariş içinden 
+            ${startIndex + 1} - ${Math.min(startIndex + ordersPerPage, completedOrders.length)} arası gösteriliyor
+        </div>
+    `;
+
+    // Siparişleri listele
+    let html = `
+        <div class="completed-orders">
+            <div class="order-header-controls">
+                <div class="search-box">
+                    <input type="text" 
+                        id="completedOrderSearch" 
+                        value="${searchQuery}"
+                        placeholder="Sipariş no, personel veya ürün ara..." 
+                        onkeyup="debounceCompletedOrderSearch(event)">
+                </div>
+                <div class="filter-controls">
+                    <select id="completedOrderSort" onchange="filterCompletedOrders()">
+                        <option value="time_desc" ${sortMethod === 'time_desc' ? 'selected' : ''}>En Yeni</option>
+                        <option value="time_asc" ${sortMethod === 'time_asc' ? 'selected' : ''}>En Eski</option>
+                        <option value="number_desc" ${sortMethod === 'number_desc' ? 'selected' : ''}>Sipariş No (Azalan)</option>
+                        <option value="number_asc" ${sortMethod === 'number_asc' ? 'selected' : ''}>Sipariş No (Artan)</option>
+                        <option value="amount_desc" ${sortMethod === 'amount_desc' ? 'selected' : ''}>Tutar (Azalan)</option>
+                        <option value="amount_asc" ${sortMethod === 'amount_asc' ? 'selected' : ''}>Tutar (Artan)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="page-info">
+                Toplam ${completedOrders.length} sipariş içinden 
+                ${startIndex + 1} - ${Math.min(startIndex + ordersPerPage, completedOrders.length)} arası gösteriliyor
+            </div>
+            
+            <div class="completed-order-list">
+                ${ordersToShow.map(order => `
+                    <div class="completed-order-card">
+                        <div class="completed-order-header">
+                            <span class="completed-order-id">Sipariş #${order.seq || order.id}</span>
+                            <span class="completed-order-time">
+                                ${order.completedAt ? order.completedAt.toDate().toLocaleString('tr-TR') : '-'}
+                            </span>
+                        </div>
+                        <div class="completed-order-details">
+                            <div class="completed-order-items">
+                                ${(order.cart || []).map(item => `
+                                    <div class="completed-order-item">
+                                        ${sanitizeInput(item.name)} x ${item.qty} = ${(item.price * item.qty).toFixed(2)}₺
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="completed-order-total">
+                                Toplam: ${getOrderTotal(order).toFixed(2)}₺
+                            </div>
+                            <div class="completed-order-payment">
+                                Ödeme: ${order.payment || 'Belirtilmemiş'}
+                            </div>
+                            <div class="completed-order-actions" style="margin-top: 15px; display: flex; gap: 10px;">
+                                <button onclick="editCompletedOrder('${order.id}')" 
+                                    style="background: #1976d2; flex: 1; padding: 8px;">
+                                    Detaylar
+                                </button>
+                                <button onclick="printReceipt('${order.id}')"
+                                    style="background: #4caf50; flex: 1; padding: 8px;">
+                                    Fiş Yazdır
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <!-- Sayfalama -->
+            <div class="pagination">
+                ${currentPage > 1 ? `
+                    <button onclick="changePage(1)">İlk</button>
+                    <button onclick="changePage(${currentPage - 1})">Önceki</button>
+                ` : ''}
+                
+                ${generatePageNumbers(currentPage, totalPages)}
+                
+                ${currentPage < totalPages ? `
+                    <button onclick="changePage(${currentPage + 1})">Sonraki</button>
+                    <button onclick="changePage(${totalPages})">Son</button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+
+    document.getElementById('orderList').innerHTML = html;
+}
+
+// Sayfa değiştirme fonksiyonu
+function changePage(page) {
+    currentPage = page;
+    renderCompletedOrders();
+}
+
+// Filtreleme fonksiyonu
+function filterCompletedOrders() {
+    currentPage = 1; // Filtreleme yapıldığında ilk sayfaya dön
+    renderCompletedOrders();
+}
+
+// Arama gecikmesi için debounce fonksiyonu
+function debounceCompletedOrderSearch(event) {
+    if (completedOrdersSearchTimeout) {
+        clearTimeout(completedOrdersSearchTimeout);
+    }
+    completedOrdersSearchTimeout = setTimeout(() => {
+        currentPage = 1; // Arama yapıldığında ilk sayfaya dön
+        filterCompletedOrders();
+    }, 300);
+}
+
+function editCompletedOrder(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const modalHtml = `
+        <div class="modal-backdrop" onclick="closeEditModal()"></div>
+        <div class="edit-order-modal">
+            <h3 style="margin:0 0 20px 0; color:#1976d2;">
+                Sipariş #${order.seq || order.id} Detayları
+            </h3>
+            
+            <!-- Sipariş Bilgileri -->
+            <div class="edit-order-section">
+                <h4>Sipariş Bilgileri</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div>
+                        <strong>Personel:</strong> ${sanitizeInput(order.user)}
+                    </div>
+                    <div>
+                        <strong>Tarih:</strong> ${order.completedAt ? order.completedAt.toDate().toLocaleString('tr-TR') : '-'}
+                    </div>
+                    <div>
+                        <strong>Ödeme:</strong> ${order.payment || 'Belirtilmemiş'}
+                    </div>
+                    <div>
+                        <strong>Durum:</strong> Tamamlandı
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ürün Ekleme -->
+            <div class="edit-order-section">
+                <h4>Yeni Ürün Ekle</h4>
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <select id="productCategory" onchange="updateProductList()" style="flex:1;">
+                        ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+                    </select>
+                    <select id="productSelect" style="flex:2;">
+                        ${products
+                            .filter(p => p.category === categories[0])
+                            .map(p => `<option value="${p.id}" data-price="${p.price}">${p.name} - ${p.price}₺</option>`)
+                            .join('')}
+                    </select>
+                    <input type="number" id="productQty" value="1" min="1" style="width:80px;" placeholder="Adet">
+                    <button onclick="addProductToOrder('${orderId}')" style="background:#4caf50;">
+                        Ekle
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mevcut Ürünler -->
+            <div class="edit-order-section">
+                <h4>Sipariş İçeriği</h4>
+                <table class="edit-order-table">
+                    <thead>
+                        <tr>
+                            <th>Ürün</th>
+                            <th>Adet</th>
+                            <th>Birim Fiyat</th>
+                            <th>Toplam</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(order.cart || []).map(item => `
+                            <tr>
+                                <td>${sanitizeInput(item.name)}</td>
+                                <td>
+                                    <input type="number" value="${item.qty}" 
+                                        onchange="updateOrderItemQty('${orderId}', '${item.id}', this.value)"
+                                        min="1" style="width:60px;">
+                                </td>
+                                <td>${item.price.toFixed(2)}₺</td>
+                                <td>${(item.price * item.qty).toFixed(2)}₺</td>
+                                <td>
+                                    <button onclick="removeOrderItem('${orderId}', '${item.id}')" 
+                                        style="background:#f44336;">Sil</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align:right;"><strong>Toplam:</strong></td>
+                            <td colspan="2"><strong>${getOrderTotal(order).toFixed(2)}₺</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Ödeme Yöntemi -->
+            <div class="edit-order-section">
+                <h4>Ödeme Yöntemi</h4>
+                <select onchange="updateOrderPayment('${orderId}', this.value)" 
+                    style="padding:8px; min-width:200px;">
+                    <option value="Nakit" ${order.payment === 'Nakit' ? 'selected' : ''}>Nakit</option>
+                    <option value="Kart" ${order.payment === 'Kart' ? 'selected' : ''}>Kart</option>
+                    <option value="QR" ${order.payment === 'QR' ? 'selected' : ''}>QR</option>
+                </select>
+            </div>
+
+            <!-- İşlemler -->
+            <div class="edit-order-actions">
+                <button onclick="printReceipt('${orderId}')" style="background:#4caf50;">
+                    Fiş Yazdır
+                </button>
+                <button onclick="deleteOrder('${orderId}')" style="background:#f44336;">
+                    Siparişi Sil
+                </button>
+                <button onclick="closeEditModal()" style="background:#666;">
+                    Kapat
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Mevcut modalı kaldır
+    const existingModal = document.getElementById('editOrderModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Yeni modalı ekle
+    const modalContainer = document.createElement('div');
+    modalContainer.id = 'editOrderModal';
+    modalContainer.innerHTML = modalHtml;
+    document.body.appendChild(modalContainer);
+}
+
+// Modal kapatma fonksiyonu
+function closeEditModal() {
+    const modal = document.getElementById('editOrderModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Fiş yazdırma fonksiyonu
+function printReceipt(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const printContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 300px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Gadai POS</h2>
+                <p style="margin: 5px 0;">Sipariş #${order.seq || order.id}</p>
+                <p style="margin: 5px 0;">${order.completedAt ? order.completedAt.toDate().toLocaleString('tr-TR') : '-'}</p>
+            </div>
+            
+            <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin-bottom: 10px;">
+                ${(order.cart || []).map(item => `
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                        <span>${sanitizeInput(item.name)} x ${item.qty}</span>
+                        <span>${(item.price * item.qty).toFixed(2)}₺</span>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div style="text-align: right; margin-bottom: 20px;">
+                <strong>Toplam: ${getOrderTotal(order).toFixed(2)}₺</strong>
+            </div>
+            
+            <div style="text-align: center;">
+                <p>Ödeme: ${order.payment || 'Belirtilmemiş'}</p>
+                <p>Personel: ${sanitizeInput(order.user)}</p>
+                <p style="margin-top: 20px;">Bizi tercih ettiğiniz için teşekkür ederiz!</p>
+            </div>
+        </div>
+    `;
+
+    // Yazdırma işlemi için iframe kullan
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    
+    iframe.contentDocument.write(printContent);
+    iframe.contentDocument.close();
+    
+    iframe.contentWindow.print();
+    
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 500);
+}
+
+// Kategori değiştiğinde ürün listesini güncelle
+function updateProductList() {
+  const category = document.getElementById('productCategory').value;
+  const productSelect = document.getElementById('productSelect');
+  
+  const filteredProducts = products.filter(p => p.category === category);
+  productSelect.innerHTML = filteredProducts.map(p => 
+    `<option value="${p.id}" data-price="${p.price}">${p.name} - ${p.price}₺</option>`
+  ).join('');
+}
+
+// Siparişe yeni ürün ekle
+function addProductToOrder(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const productSelect = document.getElementById('productSelect');
+  const productQty = parseInt(document.getElementById('productQty').value);
+  
+  if (!productSelect.value || isNaN(productQty) || productQty < 1) {
+    alert('Lütfen geçerli bir ürün ve miktar seçin');
+    return;
+  }
+
+  const selectedProduct = products.find(p => p.id === productSelect.value);
+  if (!selectedProduct) return;
+
+  const cart = order.cart || [];
+  const existingItem = cart.find(item => item.id === selectedProduct.id);
+
+  if (existingItem) {
+    existingItem.qty += productQty;
+  } else {
+    cart.push({
+      id: selectedProduct.id,
+      name: selectedProduct.name,
+      price: selectedProduct.price,
+      qty: productQty
+    });
+  }
+
+  db.collection("orders").doc(orderId).update({ cart })
+    .then(() => {
+      // Başarılı ekleme sonrası miktarı sıfırla
+      document.getElementById('productQty').value = 1;
+      // Modal'ı yenile
+      editCompletedOrder(orderId);
+    })
+    .catch(error => handleError(error, 'Ürün eklenirken bir hata oluştu'));
+}
+
+function updateOrderItemQty(orderId, itemId, newQty) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const cart = order.cart || [];
+  const item = cart.find(i => i.id === itemId);
+  if (!item) return;
+
+  newQty = parseInt(newQty);
+  if (isNaN(newQty) || newQty < 1) return;
+
+  item.qty = newQty;
+  
+  db.collection("orders").doc(orderId).update({ cart })
+    .catch(error => handleError(error, 'Ürün miktarı güncellenirken bir hata oluştu'));
+}
+
+function removeOrderItem(orderId, itemId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const cart = order.cart || [];
+  const itemIndex = cart.findIndex(i => i.id === itemId);
+  if (itemIndex === -1) return;
+
+  cart.splice(itemIndex, 1);
+  
+  db.collection("orders").doc(orderId).update({ cart })
+    .then(() => {
+      // Ürün listesini güncelle
+      editCompletedOrder(orderId);
+    })
+    .catch(error => handleError(error, 'Ürün silinirken bir hata oluştu'));
+}
+
+function updateOrderPayment(orderId, newPayment) {
+  db.collection("orders").doc(orderId).update({ payment: newPayment })
+    .catch(error => handleError(error, 'Ödeme yöntemi güncellenirken bir hata oluştu'));
+}
+
+function cancelOrder(orderId) {
+  if (!confirm('Bu siparişi iptal etmek istediğinize emin misiniz?')) return;
+
+  db.collection("orders").doc(orderId).update({
+    cancelled: true,
+    cancelledAt: firebase.firestore.Timestamp.now(),
+    cancelledBy: currentUser.username
+  })
+    .then(() => {
+      closeEditModal();
+      renderCompletedOrders();
+    })
+    .catch(error => handleError(error, 'Sipariş iptal edilirken bir hata oluştu'));
+}
+
+// Kullanıcı yönetimi panelini oluştur
+function renderUserPanel() {
+  let html = `
+    <h2>Kullanıcı Yönetimi</h2>
+    
+    <!-- Yeni Kullanıcı Ekleme Formu -->
+    <div style="background:#fff; padding:20px; border-radius:10px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+      <h3 style="margin:0 0 15px 0; color:#e91e63;">Yeni Kullanıcı Ekle</h3>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Ad Soyad:</label>
+          <input type="text" id="newUserName" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Kullanıcı Adı:</label>
+          <input type="text" id="newUserEmail" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Şifre:</label>
+          <input type="password" id="newUserPassword" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:5px; color:#666;">Rol:</label>
+          <select id="newUserRole" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+            <option value="Kasiyer">Kasiyer</option>
+            <option value="Personel">Personel</option>
+            <option value="Müdür">Müdür</option>
+            <option value="Admin">Yönetici</option>
+          </select>
+        </div>
+        <div style="align-self:end;">
+          <button onclick="addNewUser()" style="width:100%; background:#4caf50;">Kullanıcı Ekle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kullanıcı Listesi -->
+    <div style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+      <h3 style="margin:0 0 15px 0; color:#e91e63;">Kullanıcı Listesi</h3>
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Ad Soyad</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Kullanıcı Adı</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Rol</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">Son Giriş</th>
+            <th style="border:1px solid #ddd; padding:12px; background:#fde4f0; color:#e91e63;">İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="userList"></tbody>
+      </table>
+    </div>
+  `;
+
+  document.getElementById('userPanel').innerHTML = html;
+  updateUserList();
+}
+
+// Kullanıcı listesini güncelle
+async function updateUserList() {
+  try {
+    const snapshot = await db.collection('users').get();
+    
+
+const users = [
+  {
+    username: "admin",
+    password: "admin123",
+    allowedPanels: ["orders", "completed", "report", "products", "expenses", "invoices"]
+  },
+  {
+    username: "personel",
+    password: "personel123",
+    allowedPanels: ["orders", "completed", "expenses", "invoices"]
+  },
+  {
+    username: "mudur",
+    password: "mudur123",
+    allowedPanels: ["orders", "completed", "report", "expenses"]
+  }
+];
+
+
+    
+    snapshot.forEach(doc => {
+      users.push({ id: doc.id, ...doc.data() });
+    });
+
+    document.getElementById('userList').innerHTML = users.map(user => `
+      <tr>
+        <td style="border:1px solid #ddd; padding:8px;">${sanitizeInput(user.name)}</td>
+        <td style="border:1px solid #ddd; padding:8px;">${sanitizeInput(user.email)}</td>
+        <td style="border:1px solid #ddd; padding:8px;">
+          <span style="padding:4px 8px; border-radius:4px; font-size:12px; 
+            ${getRoleStyle(user.role)}">
+            ${user.role}
+          </span>
+        </td>
+        <td style="border:1px solid #ddd; padding:8px;">
+          ${user.lastLogin ? new Date(user.lastLogin.toDate()).toLocaleString('tr-TR') : '-'}
+        </td>
+        <td style="border:1px solid #ddd; padding:8px;">
+          ${getUserActions(user)}
+        </td>
+      </tr>
+    `).join('');
+
+  } catch (error) {
+    console.error('Kullanıcı listesi güncelleme hatası:', error);
+    alert('Kullanıcı listesi güncellenirken bir hata oluştu!');
+  }
+}
+
+// Rol stilini belirle
+function getRoleStyle(role) {
+  switch(role) {
+    case 'Admin':
+      return 'background:#e3f2fd; color:#1976d2;';
+    case 'Müdür':
+      return 'background:#fff3e0; color:#f57c00;';
+    case 'Personel':
+      return 'background:#e8f5e9; color:#2e7d32;';
+    case 'Kasiyer':
+      return 'background:#f3e5f5; color:#7b1fa2;';
+    default:
+      return 'background:#f5f5f5; color:#616161;';
+  }
+}
+
+// Kullanıcı işlemlerini belirle
+function getUserActions(user) {
+  const isCurrentUser = user.id === currentUser.uid;
+  const isAdmin = currentUser.role === 'Admin';
+  const isManager = currentUser.role === 'Müdür';
+  
+  let actions = '';
+  
+  // Düzenleme butonu
+  if (isAdmin || (isManager && user.role !== 'Admin')) {
+    actions += `
+      <button onclick="editUser('${user.id}')" style="background:#1976d2; padding:4px 8px; font-size:12px;">
+        Düzenle
+      </button>
+    `;
+  }
+  
+  // Şifre sıfırlama butonu
+  if (isAdmin || (isManager && user.role !== 'Admin')) {
+    actions += `
+      <button onclick="resetUserPassword('${user.id}')" style="background:#ff9800; padding:4px 8px; font-size:12px; margin-left:5px;">
+        Şifre Sıfırla
+      </button>
+    `;
+  }
+  
+  // Silme butonu
+  if (isAdmin && !isCurrentUser) {
+    actions += `
+      <button onclick="deleteUser('${user.id}')" style="background:#f44336; padding:4px 8px; font-size:12px; margin-left:5px;">
+        Sil
+      </button>
+    `;
+  }
+  
+  return actions;
+}
+
+// Yeni kullanıcı ekle
+async function addNewUser() {
+  const name = document.getElementById('newUserName').value.trim();
+  const email = document.getElementById('newUserEmail').value.trim();
+  const password = document.getElementById('newUserPassword').value;
+  const role = document.getElementById('newUserRole').value;
+
+  if (!name || !email || !password) {
+    alert('Lütfen tüm alanları doldurun!');
+    return;
+  }
+
+  try {
+    // Firebase Authentication'da kullanıcı oluştur
+    const userCredential = await firebase.auth().createUserWithEmailAndPassword(
+      email + '@gadaipos.com',
+      password
+    );
+
+    // Firestore'da kullanıcı bilgilerini kaydet
+    await db.collection('users').doc(userCredential.user.uid).set({
+      name,
+      email,
+      role,
+      createdAt: firebase.firestore.Timestamp.now(),
+      createdBy: currentUser.uid
+    });
+
+    // Formu temizle
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserEmail').value = '';
+    document.getElementById('newUserPassword').value = '';
+    document.getElementById('newUserRole').value = 'user';
+
+    alert('Kullanıcı başarıyla eklendi!');
+    updateUserList();
+  } catch (error) {
+    console.error('Kullanıcı ekleme hatası:', error);
+    alert('Kullanıcı eklenirken bir hata oluştu!');
+  }
+}
+
+// Kullanıcı düzenleme modalını göster
+function editUser(userId) {
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+
+  const modalHtml = `
+    <div class="modal-backdrop" onclick="closeEditUserModal()"></div>
+    <div class="edit-user-modal">
+      <h3 style="margin:0 0 20px 0; color:#1976d2;">
+        Kullanıcı Düzenle
+      </h3>
+      
+      <div style="margin-bottom:20px;">
+        <label style="display:block; margin-bottom:5px; color:#666;">Ad Soyad:</label>
+        <input type="text" id="editUserName" value="${sanitizeInput(user.name)}" 
+          style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+      </div>
+      
+      <div style="margin-bottom:20px;">
+        <label style="display:block; margin-bottom:5px; color:#666;">Kullanıcı Adı:</label>
+        <input type="text" id="editUserEmail" value="${sanitizeInput(user.email)}" 
+          style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+      </div>
+      
+      <div style="margin-bottom:20px;">
+        <label style="display:block; margin-bottom:5px; color:#666;">Rol:</label>
+        <select id="editUserRole" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+          <option value="user" ${user.role === 'user' ? 'selected' : ''}>Kullanıcı</option>
+          <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Yönetici</option>
+        </select>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button onclick="updateUser('${userId}')" style="background:#4caf50; flex:1;">
+          Kaydet
+        </button>
+        <button onclick="closeEditUserModal()" style="background:#666; flex:1;">
+          İptal
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Mevcut modalı kaldır
+  const existingModal = document.getElementById('editUserModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Yeni modalı ekle
+  const modalContainer = document.createElement('div');
+  modalContainer.id = 'editUserModal';
+  modalContainer.innerHTML = modalHtml;
+  document.body.appendChild(modalContainer);
+}
+
+// Kullanıcı düzenleme modalını kapat
+function closeEditUserModal() {
+  const modal = document.getElementById('editUserModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Kullanıcı bilgilerini güncelle
+async function updateUser(userId) {
+  const name = document.getElementById('editUserName').value.trim();
+  const email = document.getElementById('editUserEmail').value.trim();
+  const role = document.getElementById('editUserRole').value;
+
+  if (!name || !email) {
+    alert('Lütfen tüm alanları doldurun!');
+    return;
+  }
+
+  try {
+    await db.collection('users').doc(userId).update({
+      name,
+      email,
+      role,
+      updatedAt: firebase.firestore.Timestamp.now(),
+      updatedBy: currentUser.uid
+    });
+
+    closeEditUserModal();
+    alert('Kullanıcı başarıyla güncellendi!');
+    updateUserList();
+  } catch (error) {
+    console.error('Kullanıcı güncelleme hatası:', error);
+    alert('Kullanıcı güncellenirken bir hata oluştu!');
+  }
+}
+
+// Kullanıcı şifresini sıfırla
+async function resetUserPassword(userId) {
+  if (!confirm('Bu kullanıcının şifresini sıfırlamak istediğinize emin misiniz?')) return;
+
+  try {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    // Yeni şifre oluştur
+    const newPassword = Math.random().toString(36).slice(-8);
+    
+    // Firebase Authentication'da şifreyi güncelle
+    await firebase.auth().updatePassword(user.email + '@gadaipos.com', newPassword);
+
+    alert(`Kullanıcının yeni şifresi: ${newPassword}`);
+  } catch (error) {
+    console.error('Şifre sıfırlama hatası:', error);
+    alert('Şifre sıfırlanırken bir hata oluştu!');
+  }
+}
+
+// Kullanıcı sil
+async function deleteUser(userId) {
+  if (!confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
+
+  try {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    // Firebase Authentication'dan kullanıcıyı sil
+    await firebase.auth().deleteUser(user.email + '@gadaipos.com');
+    
+    // Firestore'dan kullanıcı bilgilerini sil
+    await db.collection('users').doc(userId).delete();
+
+    alert('Kullanıcı başarıyla silindi!');
+    updateUserList();
+  } catch (error) {
+    console.error('Kullanıcı silme hatası:', error);
+    alert('Kullanıcı silinirken bir hata oluştu!');
+  }
+}
+
+function newOrder() {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD formatı
+
+    const metaDoc = db.collection("meta").doc("seqCounter");
+
+    metaDoc.get().then(docSnap => {
+        let seq = 1;
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            if (data.date === todayStr) {
+                seq = data.value + 1;
+            }
+        }
+
+        // Yeni siparişi kaydet
+        let doc = db.collection("orders").doc();
+        doc.set({
+            id: doc.id,
+            seq: seq,
+            status: 'open',
+            cart: [],
+            payment: '',
+            created: firebase.firestore.Timestamp.fromDate(now),
+            user: currentUser.username
+        });
+
+        // Sayaç güncelle
+        metaDoc.set({ date: todayStr, value: seq });
+
+        // Arayüzü güncelle
+        currentOrderId = doc.id;
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('mainContent').classList.add('active');
+        document.getElementById('mainPanel').classList.add('order-mode');
+        document.getElementById('cartBox').style.display = 'flex';
+        document.querySelector('.category-bar').style.display = 'flex';
+        document.getElementById('products').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'flex';
+
+        renderCategorySelects();
+        showCategory(categories[0]);
+    }).catch(error => handleError(error, 'Yeni sipariş oluşturulurken bir hata oluştu'));
+}
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+
+// Fonksiyonları global hale getir
+window.newOrder = newOrder;
+window.addToCart = addToCart;
+window.onLoginSuccess = onLoginSuccess;
+window.renderOrders = renderOrders;
+window.showPanel = showPanel;
+window.showCategory = showCategory;
+window.filterProductsByLetter = filterProductsByLetter;
+
+</script>
+
+
+<div id="panelProducts" class="panel">
+  <h2>Ürün Yönetimi</h2>
+  <div id="productForm">
+    <input type="text" id="newProductName" placeholder="Ürün adı">
+    <input type="number" id="newProductPrice" placeholder="Fiyat">
+    <input type="text" id="newProductCategory" placeholder="Kategori">
+    <button onclick="addProduct()">Ürün Ekle</button>
+  </div>
+  <hr>
+  <div id="productList"></div>
+</div>
+
+<script>
+// Ürünleri listele
+function renderProductList() {
+  const container = document.getElementById('productList');
+  container.innerHTML = '<p>Yükleniyor...</p>';
+  db.collection("products").get().then(snapshot => {
+    let html = '';
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      html += `
+        <div style="margin-bottom:10px; padding:10px; border:1px solid #ccc;">
+          <b>${sanitizeInput(p.name)}</b> - ${p.price}₺ - ${p.category}
+          <button onclick="deleteProduct('${doc.id}')">Sil</button>
+        </div>`;
+    });
+    container.innerHTML = html || '<p>Hiç ürün yok.</p>';
+  });
+}
+
+// Ürün ekle
+function addProduct() {
+  const name = document.getElementById('newProductName').value.trim();
+  const price = parseFloat(document.getElementById('newProductPrice').value.trim());
+  const category = document.getElementById('newProductCategory').value.trim();
+  if (!name || isNaN(price) || !category) {
+    alert("Lütfen geçerli ürün bilgileri girin.");
+    return;
+  }
+
+  db.collection("products").add({ name, price, category }).then(() => {
+    document.getElementById('newProductName').value = '';
+    document.getElementById('newProductPrice').value = '';
+    document.getElementById('newProductCategory').value = '';
+    renderProductList();
+  }).catch(error => handleError(error, 'Ürün eklenirken hata'));
+}
+
+// Ürün sil
+function deleteProduct(id) {
+  if (!confirm("Bu ürünü silmek istediğinizden emin misiniz?")) return;
+  db.collection("products").doc(id).delete().then(() => {
+    renderProductList();
+  }).catch(error => handleError(error, 'Ürün silinirken hata'));
+}
+
+// Panel açıldığında ürünleri yükle
+if (typeof showPanel === 'function') {
+  const oldShowPanel = showPanel;
+  showPanel = function (panel) {
+    oldShowPanel(panel);
+    if (panel === 'products') renderProductList();
+  };
+}
+</script>
+
+<div class="panel" id="expensesPanel">
+    <h2>Gider Yönetimi</h2>
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="expenseDescription" placeholder="Gider Açıklaması" style="flex: 1;">
+            <input type="number" id="expenseAmount" placeholder="Tutar" style="width: 150px;">
+            <input type="date" id="expenseDate" style="width: 150px;">
+            <select id="expensePaymentType" style="width: 150px;">
+                <option value="Nakit">Nakit</option>
+                <option value="Kart">Kart</option>
+            </select>
+            <button onclick="addExpense()" style="background: #4caf50;">Gider Ekle</button>
+        </div>
+        <button onclick="downloadExpensesPDF()" style="background: #1976d2; margin-top: 10px;">PDF İndir</button>
+    </div>
+    <div id="expensesList"></div>
+</div>
+
+<!-- jsPDF kütüphanesini ekle -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+// ... existing code ...
+
+// Gider ekleme fonksiyonu
+function addExpense() {
+    const description = document.getElementById('expenseDescription').value.trim();
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
+    const paymentType = document.getElementById('expensePaymentType').value;
+    const expenseDate = document.getElementById('expenseDate').value;
+    
+    if (!description || isNaN(amount) || amount <= 0 || !expenseDate) {
+        alert('Lütfen tüm alanları doldurun.');
+        return;
+    }
+    
+    const expense = {
+        description,
+        amount,
+        paymentType,
+        date: firebase.firestore.Timestamp.fromDate(new Date(expenseDate)),
+        timestamp: Date.now()
+    };
+    
+    firebase.firestore().collection("expenses").add(expense)
+        .then(() => {
+            alert('Gider başarıyla eklendi!');
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDate').value = '';
+            renderExpenses();
+        })
+        .catch(error => {
+            alert('Gider eklenirken bir hata oluştu: ' + error.message);
+        });
+}
+
+// Giderleri listeleme fonksiyonu
+function renderExpenses() {
+    const expensesList = document.getElementById('expensesList');
+    expensesList.innerHTML = '<h3>Gider Listesi</h3>';
+    
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    table.style.marginTop = '10px';
+    
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th style="padding: 8px; border: 1px solid #ddd;">Tarih</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Açıklama</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Tutar</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Ödeme Tipi</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">İşlem</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    
+    firebase.firestore().collection("expenses")
+        .orderBy("timestamp", "desc")
+        .onSnapshot((snapshot) => {
+            tbody.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const expense = doc.data();
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="padding: 8px; border: 1px solid #ddd;">${expense.date.toDate().toLocaleDateString('tr-TR')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${expense.description}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${expense.amount.toFixed(2)} TL</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${expense.paymentType}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">
+                        <button onclick="deleteExpense('${doc.id}')" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Sil</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+    
+    table.appendChild(tbody);
+    expensesList.appendChild(table);
+}
+
+// Gider silme fonksiyonu
+function deleteExpense(expenseId) {
+    if (confirm('Bu gideri silmek istediğinizden emin misiniz?')) {
+        firebase.firestore().collection("expenses").doc(expenseId).delete()
+            .then(() => {
+                alert('Gider başarıyla silindi!');
+            })
+            .catch(error => {
+                alert('Gider silinirken bir hata oluştu: ' + error.message);
+            });
+    }
+}
+
+// Giderleri PDF olarak indirme fonksiyonu
+function downloadExpensesPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Başlık
+    doc.setFontSize(20);
+    doc.text('Gider Raporu', 14, 15);
+    doc.setFontSize(12);
+    doc.text('Oluşturulma Tarihi: ' + new Date().toLocaleDateString('tr-TR'), 14, 25);
+    
+    // Tablo başlıkları
+    const headers = [['Tarih', 'Açıklama', 'Tutar', 'Ödeme Tipi']];
+    const data = [];
+    let total = 0;
+    
+    // Giderleri topla
+    firebase.firestore().collection("expenses")
+        .orderBy("timestamp", "desc")
+        .get()
+        .then(snapshot => {
+            snapshot.forEach(doc => {
+                const expense = doc.data();
+                const date = expense.date.toDate().toLocaleDateString('tr-TR');
+                total += expense.amount;
+                
+                data.push([
+                    date,
+                    expense.description,
+                    expense.amount.toFixed(2) + ' TL',
+                    expense.paymentType
+                ]);
+            });
+            
+            // Toplam satırı
+            data.push(['', 'TOPLAM', total.toFixed(2) + ' TL', '']);
+            
+            // Tabloyu oluştur
+            doc.autoTable({
+                head: headers,
+                body: data,
+                startY: 35,
+                theme: 'grid',
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 5
+                },
+                headStyles: {
+                    fillColor: [233, 30, 99],
+                    textColor: 255
+                }
+            });
+            
+            // PDF'i indir
+            doc.save('gider-raporu.pdf');
+        })
+        .catch(error => {
+            alert('PDF oluşturulurken bir hata oluştu: ' + error.message);
+        });
+}
+
+// Panel değiştirme fonksiyonunu güncelle
+function showPanel(panelId) {
+    document.querySelectorAll('.panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+    document.getElementById(panelId).classList.add('active');
+
+    if (panelId === 'expenses') {
+        document.getElementById('expensesPanel').classList.add('active');
+        renderExpenses();
+    }
+}
+
+// Kullanıcı yetkilerini güncelle
+const users = [
+    {
+        username: "admin",
+        password: "admin123",
+        allowedPanels: ["orders", "completed", "report", "products", "expenses", "invoices"]
+    },
+    {
+        username: "personel",
+        password: "personel123",
+        allowedPanels: ["orders", "completed", "expenses", "invoices"]
+    },
+    {
+        username: "mudur",
+        password: "mudur123",
+        allowedPanels: ["orders", "completed", "report", "expenses"]
+    }
+];
+// ... existing code ...
+</script>
+</body>
+</html>
+      
